@@ -1,0 +1,6 @@
+pluginname=Modulkataloggenerator
+pluginclassname=Modulkataloggenerator
+origin=upa
+version=1.2
+description=Plugin für die Erstellung von Modulkatalogen und ECTS-Listen
+studipMinVersion=2.0
