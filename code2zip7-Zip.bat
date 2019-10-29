@@ -11,4 +11,3 @@ echo.
 echo neu packen...
 "%sevenZIPDir%7z.exe" a "%currentDir%_ZIP\Modulkataloggenerator.zip" "%currentDir%Code\*"
 echo neu gepackt und fertig!
-pause

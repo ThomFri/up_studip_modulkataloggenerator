@@ -3,7 +3,7 @@
   <component name="WebServers">
     <option name="servers">
       <webServer id="f290bfe3-5bb6-424c-ac71-b7fb3389a750" name="UP_Stud.IP-Dev" url="">
-        <fileTransfer host="studip-dev.uni-passau.de" port="21" rootFolder="/Modulkataloggenerator">
+        <fileTransfer host="studip-dev.uni-passau.de" port="21" rootFolder="/Modulkatalog_Plugin_Gruppe2">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>
