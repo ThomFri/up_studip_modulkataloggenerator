@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="f290bfe3-5bb6-424c-ac71-b7fb3389a750" name="UP_Stud.IP-Dev" url="">
+        <fileTransfer host="studip-dev.uni-passau.de" port="21" rootFolder="/Modulkataloggenerator">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+          <option name="port" value="21" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
