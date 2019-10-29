@@ -104,22 +104,41 @@ class SubmitController extends AuthenticatedController {
         Settings::setOutputEscapingEnabled(true);
         $phpWord->getSettings()->setHideGrammaticalErrors(true);
         $phpWord->getSettings()->setHideSpellingErrors(true);
-        //DomPDF wird zur Erzeugung von PDFs verwendet -> für spätere Versionen
+
+        //TODO:omPDF wird zur Erzeugung von PDFs verwendet -> für spätere Versionen
+        //TODO: Alternativ -> https://stackoverflow.com/questions/33084148/generate-pdf-from-docx-generated-by-phpword
         $options = new Options();
         $options->setChroot($GLOBALS['TMP_PATH']);
         $dompdf = new Dompdf($options);
 
+        //Sections
         $headerSection = $phpWord->addSection(); //Titel des Dokuments und Gliederung
         $headerStyle = array('name' => 'Tahoma', 'size' => 16, 'bold' => true);
+
+        $tocSection = $phpWord->addSection();
+        $fontStyle12 = array('spaceAfter' => 60, 'size' => 12);
+
         $mainSection = $phpWord->addSection(array('breakType' => 'continuous')); //Inhalt des Dokuments
+
+        //Styles
         $titleStyle = array('name' => 'Arial', 'size' => 12, 'bold' => true);
         $centerStyle = array('alignment' => Jc::CENTER);
         $tableStyle = array('cellMargin' => 40);
 
+        $phpWord->addTitleStyle(0, $titleStyle, $centerStyle);
+        $phpWord->addTitleStyle(1, $headerStyle, $centerStyle);
+        $phpWord->addTitleStyle(2, $headerStyle, $centerStyle);
+
+
         if ($inputArray['auftrag'] === 'modul') { //Modulkatalog erstellen
-            $headerSection->addText("Modulkatalog für " . $inputArray['studiengang'] .
-                " (" . $inputArray['po'] . ")" . " im " . $inputArray['semester'], $headerStyle, $centerStyle);
+            $headerSection->addTitle("Modulkatalog für " . $inputArray['studiengang'] .
+                " (" . $inputArray['po'] . ")" . " im " . $inputArray['semester'],0);
             $headerSection->addText("Enthaltene Module:", array('size' => 14, 'underline' => Font::UNDERLINE_SINGLE));
+
+            $tocSection->addTitle('Inhaltsverzeichnis', 1);
+            $toc = $tocSection->addTOC($fontStyle12);
+
+
             $count = 1;
             //Hinweistext zu nicht enthaltenden Modulen:
             $endSection = $phpWord->addSection(); //Hinweis auf letzter Seite des Dokuments
@@ -236,7 +255,7 @@ class SubmitController extends AuthenticatedController {
                                         in_array($cours->getSemType()['name'], $relevanteVaTypen) && //nach Vorlesungen und Seminaren filtern
                                         $f->name !== "Studium Generale"){ //Studium Generale nicht anzeigen
                                         $headerSection->addText($count .". ".$this->encodeText($cours->name));
-                                        $mainSection->addText($count++ .". ".$this->encodeText($cours->name), $titleStyle, $centerStyle);
+                                        $mainSection->addTitle($count++ .". ".$this->encodeText($cours->name),2);
                                         $table = $mainSection->addTable($tableStyle);
                                         $this->addTableToDoc($cours, $table, $f->name);
                                         $this->modulUebersicht($cours, $f->name);
@@ -259,7 +278,7 @@ class SubmitController extends AuthenticatedController {
                                     if ($cours->start_semester->name === $inputArray['semester'] && //nach ausgewähltem Semester filtern
                                         in_array($cours->getSemType()['name'], $relevanteVaTypen)){ //nach Vorlesungen und Seminaren filtern
                                         $headerSection->addText($count .". ".$this->encodeText($cours->name));
-                                        $mainSection->addText($count++ .". ".$this->encodeText($cours->name), $titleStyle, $centerStyle);
+                                        $mainSection->addTitle($count++ .". ".$this->encodeText($cours->name), 2);
                                         $table = $mainSection->addTable($tableStyle);
                                         $modName = $m->name . " - " . $f->name;
                                         $this->addTableToDoc($cours, $table, $modName);
@@ -279,7 +298,7 @@ class SubmitController extends AuthenticatedController {
                                 if ($cours->start_semester->name === $inputArray['semester'] && //nach ausgewähltem Semester filtern
                                     in_array($cours->getSemType()['name'], $relevanteVaTypen)){ //nach Vorlesungen und Seminaren filtern
                                     $headerSection->addText($count .". ".$this->encodeText($cours->name));
-                                    $mainSection->addText($count++ .". ".$this->encodeText($cours->name), $titleStyle, $centerStyle);
+                                    $mainSection->addTitle($count++ .". ".$this->encodeText($cours->name), 2);
                                     $table = $mainSection->addTable($tableStyle);
                                     $this->addTableToDoc($cours, $table, $m->name);
                                     $this->modulUebersicht($cours, $m->name);

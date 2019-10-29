@@ -33,7 +33,7 @@ class DekanatController extends AuthenticatedController {
         $this->semesters = Semester::getAll();
         $this->current_semester = Semester::findCurrent();
 
-        //institutes werden nicht richtig angezeigt, für weitere Versionen, die nicht nur die Wiwi-Fakultät enthalten muss das gefixed werden
+        //TODO: institutes werden nicht richtig angezeigt, für weitere Versionen, die nicht nur die Wiwi-Fakultät enthalten muss das gefixed werden
         $institutes = Institute::getInstitutes();
         $this->institutes = $institutes;
 
@@ -51,8 +51,7 @@ class DekanatController extends AuthenticatedController {
                 $tmp = StudipStudyArea::findByParent($item->id);
         }
         foreach ($tmp as $p)
-            if ($p->name !== "Version 1") //Version 1 des BAE's ausschließen, da zu alt und sehr schlecht gegliedert
-                array_push($poBAE, $p->name);
+            array_push($poBAE, $p->name);
 
         $this->poBAE = $poBAE;
     }

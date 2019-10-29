@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" serverName="UP_Stud.IP-Dev">
+  <component name="PublishConfigData" autoUpload="Always" serverName="UP_Stud.IP-Dev" autoUploadExternalChanges="true">
     <serverData>
       <paths name="UP_Stud.IP-Dev">
         <serverdata>
@@ -10,5 +10,6 @@
         </serverdata>
       </paths>
     </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
   </component>
 </project>
