@@ -9,6 +9,7 @@ use PhpOffice\PhpWord\Settings;
 use PhpOffice\PhpWord\SimpleType\Jc;
 use PhpOffice\PhpWord\Style\Font;
 use PhpOffice\PhpWord\Style\ListItem;
+# use PhpOffice\PhpWord\Settings::setOutputEscapingEnabled(false);
 
 include __DIR__.'/../composer/vendor/autoload.php';
 
@@ -127,6 +128,7 @@ class SubmitController extends AuthenticatedController {
         //Styles
         $titleStyle = array('name' => 'Arial', 'size' => 12, 'bold' => true);
         $centerStyle = array('alignment' => Jc::CENTER);
+        $leftStyle = array('alignment' => Jc::LEFT);
         $tableStyle = array('cellMargin' => 40);
 
         $phpWord->addTitleStyle(0, $titleStyle);
@@ -142,7 +144,6 @@ class SubmitController extends AuthenticatedController {
 
             $tocSection->addTitle('Inhaltsverzeichnis');
             $toc = $tocSection->addTOC($fontStyle12);
-
 
             $count = 1;
 
@@ -325,23 +326,27 @@ class SubmitController extends AuthenticatedController {
 
 
             //Modulzuordnung ins Dokument schreiben
-            $tocSection->addPageBreak();
-            $tocSection->addTitle("Modulzuordnung", 1); //array('size' => 14, 'underline' => Font::UNDERLINE_SINGLE));
-            foreach ($this->modulTabelle as $modTab) {
-                $modTable = $tocSection->addTable(array(
+            $currentSection = $tocSection;
+
+            $currentSection->addPageBreak();
+            $currentSection->addTitle("Modulzuordnung", 1); //array('size' => 14, 'underline' => Font::UNDERLINE_SINGLE));
+            foreach ($this->modulOrdnungsTabelle as $modTab) {
+
+                $currentSection->addText($modTab[0], $titleStyle, $leftStyle);
+
+                $modTable = $currentSection->addTable(array(
                     'borderColor' => '000000',
                     'borderSize' => 4,
-                    'cellMargin' => 20,
-                    'cellWidth' => 100
+                    'cellMargin' => 40
                 ));
 
-                $modTable->addRow();
-                $modTable->addCell()->addText($this->encodeText($modTab[0]), $titleStyle, $centerStyle);
-
-                $modTable->addRow();
-                $cell = $modTable->addCell();
                 for ($j = 1; $j < sizeof($modTab); $j++) {
-                    $cell->addListItem($this->encodeText($modTab[$j]), ListItem::TYPE_BULLET_FILLED);
+                    $modTable->addRow();
+                    $cell = $modTable->addCell();
+                    $cours = $modTab[$j];
+
+                    $cell->addText($this->encodeText($cours->veranstaltungsnummer."\t".$cours->name));
+                    //$cell->addListItem($this->encodeText($modTab[$j]), ListItem::TYPE_BULLET_FILLED);
                 }
 
                 $tocSection->addTextBreak();
@@ -523,6 +528,10 @@ class SubmitController extends AuthenticatedController {
      * @return string Text mit darstellbaren Umlauten und Sonderzeichen
      */
     public function encodeText($text){
+        //$tmp = nl2br(html_entity_decode(htmlentities($text)));
+        //\PhpOffice\PhpWord\Settings::setOutputEscapingEnabled(false);
+        //return str_replace("<br />", "TEST123 <w:br/> TEST123", $tmp);
+
         return html_entity_decode(htmlentities($text));
     }
 
@@ -551,7 +560,12 @@ class SubmitController extends AuthenticatedController {
     public function addTextToTable($table, $titel, $inhalt){
         $table->addRow();
         $table->addCell()->addText($titel);
-        $table->addCell()->addText($this->encodeText($inhalt));
+        $tmpCell = $table->addCell();
+
+        $textlines = explode("\n", $this->encodeText($inhalt));
+        for ($i = 0; $i < sizeof($textlines); $i++) {
+            $tmpCell->addText($textlines[$i]);
+        }
     }
 
     /**
@@ -605,7 +619,7 @@ class SubmitController extends AuthenticatedController {
 
 
     public function modulSeiteSchreiben($course, $modul, $section, $tabStyle){
-        $section->addTitle($this->encodeText($course->name),3);
+        $section->addTitle($this->encodeText($course->veranstaltungsnummer."\t".$course->name),3);
 
         $table = $section->addTable($tabStyle);
         $this->addTableToDoc($course, $table, $modul);
