@@ -20,6 +20,7 @@ include __DIR__.'/../composer/vendor/autoload.php';
  * dient zur Überprüfung auf Mehrfacheinträge
  */
 class SubmitController extends AuthenticatedController {
+    private $modulOrdnungsTabelle;
 
     /**
      * Aktionen und Einstellungen, werden vor jedem Seitenaufruf aufgerufen
@@ -32,6 +33,7 @@ class SubmitController extends AuthenticatedController {
         $this->set_layout(Request::isXhr() ? null : $GLOBALS['template_factory']->open('layouts/base'));
 
         $this->modulTabelle = array();
+        $this->modulOrdnungsTabelle = array();
         $this->kurse = array();
     }
 
@@ -112,11 +114,13 @@ class SubmitController extends AuthenticatedController {
         $dompdf = new Dompdf($options);
 
         //Sections
-        $headerSection = $phpWord->addSection(); //Titel des Dokuments und Gliederung
+        $headerSection = $phpWord->addSection(); //Titel des Dokuments ALT: und Gliederung
         $headerStyle = array('name' => 'Tahoma', 'size' => 16, 'bold' => true);
 
-        $tocSection = $phpWord->addSection();
+        $tocSection = $phpWord->addSection(); //Inhaltsverzeichnisse
         $fontStyle12 = array('spaceAfter' => 60, 'size' => 12);
+
+        $preContentSection = $phpWord->addSection(); //Zuordnungen
 
         $mainSection = $phpWord->addSection(array('breakType' => 'continuous')); //Inhalt des Dokuments
 
@@ -125,21 +129,23 @@ class SubmitController extends AuthenticatedController {
         $centerStyle = array('alignment' => Jc::CENTER);
         $tableStyle = array('cellMargin' => 40);
 
-        $phpWord->addTitleStyle(0, $titleStyle, $centerStyle);
+        $phpWord->addTitleStyle(0, $titleStyle);
         $phpWord->addTitleStyle(1, $headerStyle, $centerStyle);
         $phpWord->addTitleStyle(2, $headerStyle, $centerStyle);
+        $phpWord->addTitleStyle(3, $headerStyle, $centerStyle);
 
 
         if ($inputArray['auftrag'] === 'modul') { //Modulkatalog erstellen
             $headerSection->addTitle("Modulkatalog für " . $inputArray['studiengang'] .
                 " (" . $inputArray['po'] . ")" . " im " . $inputArray['semester'],0);
-            $headerSection->addText("Enthaltene Module:", array('size' => 14, 'underline' => Font::UNDERLINE_SINGLE));
+            //$headerSection->addText("Enthaltene Module:", array('size' => 14, 'underline' => Font::UNDERLINE_SINGLE));
 
-            $tocSection->addTitle('Inhaltsverzeichnis', 1);
+            $tocSection->addTitle('Inhaltsverzeichnis');
             $toc = $tocSection->addTOC($fontStyle12);
 
 
             $count = 1;
+
             //Hinweistext zu nicht enthaltenden Modulen:
             $endSection = $phpWord->addSection(); //Hinweis auf letzter Seite des Dokuments
             $endInfoStyle = array('size' => 12, 'underline' => Font::UNDERLINE_SINGLE);
@@ -254,12 +260,13 @@ class SubmitController extends AuthenticatedController {
                                     if ($cours->start_semester->name === $inputArray['semester'] && //nach ausgewähltem Semester filtern
                                         in_array($cours->getSemType()['name'], $relevanteVaTypen) && //nach Vorlesungen und Seminaren filtern
                                         $f->name !== "Studium Generale"){ //Studium Generale nicht anzeigen
-                                        $headerSection->addText($count .". ".$this->encodeText($cours->name));
-                                        $mainSection->addTitle($count++ .". ".$this->encodeText($cours->name),2);
-                                        $table = $mainSection->addTable($tableStyle);
-                                        $this->addTableToDoc($cours, $table, $f->name);
-                                        $this->modulUebersicht($cours, $f->name);
-                                        $mainSection->addPageBreak();
+                                        //$headerSection->addText($count .". ".$this->encodeText($cours->name));
+                                        //$mainSection->addTitle($count++ .". ".$this->encodeText($cours->name),2);
+                                        //$table = $mainSection->addTable($tableStyle);
+                                        //$this->addTableToDoc($cours, $table, $f->name);
+                                        //$this->modulUebersicht($cours, $f->name);
+                                        $this->modulEinordnen($cours, $f->name);
+                                        //$mainSection->addPageBreak();
 
                                     }
                                 }
@@ -277,13 +284,14 @@ class SubmitController extends AuthenticatedController {
                                 foreach ($courses as $cours) {
                                     if ($cours->start_semester->name === $inputArray['semester'] && //nach ausgewähltem Semester filtern
                                         in_array($cours->getSemType()['name'], $relevanteVaTypen)){ //nach Vorlesungen und Seminaren filtern
-                                        $headerSection->addText($count .". ".$this->encodeText($cours->name));
-                                        $mainSection->addTitle($count++ .". ".$this->encodeText($cours->name), 2);
-                                        $table = $mainSection->addTable($tableStyle);
+                                        //$headerSection->addText($count .". ".$this->encodeText($cours->name));
+                                        //$mainSection->addTitle($count++ .". ".$this->encodeText($cours->name), 2);
+                                        //$table = $mainSection->addTable($tableStyle);
                                         $modName = $m->name . " - " . $f->name;
-                                        $this->addTableToDoc($cours, $table, $modName);
-                                        $this->modulUebersicht($cours, $modName);
-                                        $mainSection->addPageBreak();
+                                        //$this->addTableToDoc($cours, $table, $modName);
+                                        //$this->modulUebersicht($cours, $modName);
+                                        $this->modulEinordnen($cours, $modName);
+                                        //$mainSection->addPageBreak();
                                     }
                                 }
                             }
@@ -297,12 +305,13 @@ class SubmitController extends AuthenticatedController {
                             foreach ($courses as $cours) {
                                 if ($cours->start_semester->name === $inputArray['semester'] && //nach ausgewähltem Semester filtern
                                     in_array($cours->getSemType()['name'], $relevanteVaTypen)){ //nach Vorlesungen und Seminaren filtern
-                                    $headerSection->addText($count .". ".$this->encodeText($cours->name));
-                                    $mainSection->addTitle($count++ .". ".$this->encodeText($cours->name), 2);
-                                    $table = $mainSection->addTable($tableStyle);
-                                    $this->addTableToDoc($cours, $table, $m->name);
-                                    $this->modulUebersicht($cours, $m->name);
-                                    $mainSection->addPageBreak();
+                                    //$headerSection->addText($count .". ".$this->encodeText($cours->name));
+                                    //$mainSection->addTitle($count++ .". ".$this->encodeText($cours->name), 2);
+                                    //$table = $mainSection->addTable($tableStyle);
+                                    //$this->addTableToDoc($cours, $table, $m->name);
+                                    //$this->modulUebersicht($cours, $m->name);
+                                    $this->modulEinordnen($cours, $m->name);
+                                    //$mainSection->addPageBreak();
                                 }
                             }
                         }
@@ -313,13 +322,17 @@ class SubmitController extends AuthenticatedController {
 
             }
             $headerSection->addPageBreak(); //erstellt Seitenumbruch nach der Gliederung
+
+
             //Modulzuordnung ins Dokument schreiben
-            $headerSection->addText("Modulzuordnung:", array('size' => 14, 'underline' => Font::UNDERLINE_SINGLE));
+            $tocSection->addPageBreak();
+            $tocSection->addTitle("Modulzuordnung", 1); //array('size' => 14, 'underline' => Font::UNDERLINE_SINGLE));
             foreach ($this->modulTabelle as $modTab) {
-                $modTable = $headerSection->addTable(array(
+                $modTable = $tocSection->addTable(array(
                     'borderColor' => '000000',
                     'borderSize' => 4,
-                    'cellMargin' => 20
+                    'cellMargin' => 20,
+                    'cellWidth' => 100
                 ));
 
                 $modTable->addRow();
@@ -331,9 +344,27 @@ class SubmitController extends AuthenticatedController {
                     $cell->addListItem($this->encodeText($modTab[$j]), ListItem::TYPE_BULLET_FILLED);
                 }
 
-                $headerSection->addTextBreak();
+                $tocSection->addTextBreak();
             }
-            $headerSection->addPageBreak(); //erstellt Seitenumbruch nach der Modulzuordnung
+            $tocSection->addPageBreak(); //erstellt Seitenumbruch nach der Modulzuordnung
+
+
+            $mainSection->addTitle("Module nach Zuordnung",1);
+            $mainSection->addPageBreak();
+
+            //Module sortiert schreiben
+            foreach ($this->modulOrdnungsTabelle as $modTab) {
+
+                $this->modulGruppeSchreiben($modTab[0], $mainSection);
+
+                for ($j = 1; $j < sizeof($modTab); $j++) {
+                    $this->modulSeiteSchreiben($modTab[$j], $modTab[0], $mainSection, $tableStyle);
+                }
+
+            }
+
+
+
         }
 
         elseif ($inputArray['auftrag'] === 'ects') { //ECTS-Liste erstellen
@@ -545,6 +576,53 @@ class SubmitController extends AuthenticatedController {
                 }
             }
         }
+    }
+
+    public function modulOrdnung($cours, $modul){
+        $bool = true;
+        foreach ($this->modulOrdnungsTabelle as $modTab) { //überprüfen, ob Modul schon im Table ist
+            if(in_array($modul, $modTab))
+                $bool = false;
+        }
+        if($bool){ // nicht im Table
+            array_push($this->modulOrdnungsTabelle, array($modul));
+        }
+
+        for ($i = 0; $i<sizeof($this->modulOrdnungsTabelle); $i++){
+            for($j = 0; $j<sizeof($this->modulOrdnungsTabelle[$i]); $j++){
+                if($this->modulOrdnungsTabelle[$i][$j] === $modul){
+                    array_push($this->modulOrdnungsTabelle[$i], $cours);
+                }
+            }
+        }
+    }
+
+    public function modulEinordnen($course, $modul){
+        $this->modulUebersicht($course,$modul);
+        $this->modulOrdnung($course,$modul);
+    }
+
+
+
+    public function modulSeiteSchreiben($course, $modul, $section, $tabStyle){
+        $section->addTitle($this->encodeText($course->name),3);
+
+        $table = $section->addTable($tabStyle);
+        $this->addTableToDoc($course, $table, $modul);
+        $section->addPageBreak();
+    }
+
+
+    public function modulGruppeSchreiben($modul, $section) {
+        $section->addTitle($this->encodeText($modul),2);
+        $section->addPageBreak();
+    }
+
+
+
+
+    public function moduleSortiertDrucken(){
+
     }
 
     /**
