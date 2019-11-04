@@ -130,6 +130,10 @@ class SubmitController extends AuthenticatedController {
         $centerStyle = array('alignment' => Jc::CENTER);
         $leftStyle = array('alignment' => Jc::LEFT);
         $tableStyle = array('cellMargin' => 40);
+        $endInfoStyle = array('size' => 12, 'underline' => Font::UNDERLINE_SINGLE);
+
+        //
+        $phpWord->addParagraphStyle('modTableTab', array('tabs' => array(new \PhpOffice\PhpWord\Style\Tab('left', 7000))));
 
         $phpWord->addTitleStyle(0, $titleStyle);
         $phpWord->addTitleStyle(1, $headerStyle, $centerStyle);
@@ -138,26 +142,29 @@ class SubmitController extends AuthenticatedController {
 
 
         if ($inputArray['auftrag'] === 'modul') { //Modulkatalog erstellen
+            $headerSection->addImage(__DIR__.'/../src/logo01.png');
             $headerSection->addTitle("Modulkatalog für " . $inputArray['studiengang'] .
                 " (" . $inputArray['po'] . ")" . " im " . $inputArray['semester'],0);
             //$headerSection->addText("Enthaltene Module:", array('size' => 14, 'underline' => Font::UNDERLINE_SINGLE));
+
+
+            $headerSection->addText("\t".$inputArray['studiengang'], 'modTableTab');
+            $headerSection->addText($inputArray['studiengang']);
+            $headerSection->addText("(".$inputArray['po'].")");
+            $headerSection->addText($inputArray['semester']);
+            $headerSection->addText("Stand: ".date('d.m.Y'));
+
+            $headerSection->addText("Falls Sie ältere Versionen des Modulkatalogs benötigen, setzen Sie sich bitte mit dem Dekanat der Wirtschaftswissenschaftlichen Fakultät in Verbindung (dekanat.wiwi@uni-passau.de).");
+            $headerSection->addText("Für alle aufgeführten Veranstaltungen des Modulkatalogs gelten die Studien- und Qualifikationsvoraussetzungen gemäß der jeweiligen Prüfungs- und Studienordnung.");
+
+
 
             $tocSection->addTitle('Inhaltsverzeichnis');
             $toc = $tocSection->addTOC($fontStyle12);
 
             $count = 1;
 
-            //Hinweistext zu nicht enthaltenden Modulen:
-            $endSection = $phpWord->addSection(); //Hinweis auf letzter Seite des Dokuments
-            $endInfoStyle = array('size' => 12, 'underline' => Font::UNDERLINE_SINGLE);
-            $endSection->addText("Hinweise zu anderen Veranstaltungen:", array('size' => 14, 'underline' => Font::UNDERLINE_SINGLE));
-            $endSection->addText("Schwerpunkt Studium Generale", $endInfoStyle);
-            $endSection->addText("Im Schwerpunkt -Studium Generale- können je nach Kapazität Angebote anderer Fakultäten gewählt werden. Die Angebote entnehmen Sie bitte aus Stud-IP.");
-            $endSection->addText("Fremdsprachenangebot", $endInfoStyle);
-            $endSection->addText("Bei den Wahlmodulen Fremdsprachen / Schlüsselkompetenzen können Sie eine Wirtschaftsfremdsprache aus dem Angebot des Sprachenzentrums der Universität Passau wählen. Das Angebot entnehmen Sie bitte aus dessen Website: http://www.sprachenzentrum.uni-passau.de/fremdsprachenausbildung/ffa/ffa-fuer-wirtschaftswissenschaftler/ Sie wählen Sprachkurse gemäß Ihren (durch Einstufungstest oder Zertifikat festgestellten) Vorkenntnissen. Prüfungsmodul ist das vollständig absolvierte Modul der jeweils höchsten erreichten Stufe. In allen Sprachen wählen Sie ab der Aufbaustufe die Fachsprache Wirtschaft. Englisch kann grundsätzlich erst ab der Aufbaustufe gewählt werden. ");
-            $endSection->addText("Schlüsselkompetenzen", $endInfoStyle);
-            $endSection->addText("Zusätzlich können Sie Veranstaltungen zu Schlüsselkompetenzen aus dem Angebot des Zentrums für Karriere und Kompetenzen wählen. Das Angebot entnehmen Sie bitte aus dessen Website: http://www.uni-passau.de/studium/service-und-beratung/zkk/veranstaltungen/fuer-studierende/");
-            //---
+
             $file = 'Modulkatalog_' . $inputArray['semester'] . '_' .
                 $inputArray['studiengang'];
 
@@ -369,6 +376,20 @@ class SubmitController extends AuthenticatedController {
             }
 
 
+            /*
+             * Hinweistext zu nicht enthaltenden Modulen
+             * =========================================
+             */
+
+            $endSection = $phpWord->addSection(); //Hinweis auf letzter Seite des Dokuments
+            $endSection->addTitle("Hinweise zu anderen Veranstaltungen",1);
+            $endSection->addText("Schwerpunkt Studium Generale", $endInfoStyle);
+            $endSection->addText("Im Schwerpunkt -Studium Generale- können je nach Kapazität Angebote anderer Fakultäten gewählt werden. Die Angebote entnehmen Sie bitte aus Stud-IP.");
+            $endSection->addText("Fremdsprachenangebot", $endInfoStyle);
+            $endSection->addText("Bei den Wahlmodulen Fremdsprachen / Schlüsselkompetenzen können Sie eine Wirtschaftsfremdsprache aus dem Angebot des Sprachenzentrums der Universität Passau wählen. Das Angebot entnehmen Sie bitte aus dessen Website: http://www.sprachenzentrum.uni-passau.de/fremdsprachenausbildung/ffa/ffa-fuer-wirtschaftswissenschaftler/ Sie wählen Sprachkurse gemäß Ihren (durch Einstufungstest oder Zertifikat festgestellten) Vorkenntnissen. Prüfungsmodul ist das vollständig absolvierte Modul der jeweils höchsten erreichten Stufe. In allen Sprachen wählen Sie ab der Aufbaustufe die Fachsprache Wirtschaft. Englisch kann grundsätzlich erst ab der Aufbaustufe gewählt werden. ");
+            $endSection->addText("Schlüsselkompetenzen", $endInfoStyle);
+            $endSection->addText("Zusätzlich können Sie Veranstaltungen zu Schlüsselkompetenzen aus dem Angebot des Zentrums für Karriere und Kompetenzen wählen. Das Angebot entnehmen Sie bitte aus dessen Website: http://www.uni-passau.de/studium/service-und-beratung/zkk/veranstaltungen/fuer-studierende/");
+
 
         }
 
@@ -564,7 +585,7 @@ class SubmitController extends AuthenticatedController {
 
         $textlines = explode("\n", $this->encodeText($inhalt));
         for ($i = 0; $i < sizeof($textlines); $i++) {
-            $tmpCell->addText($textlines[$i]);
+            $tmpCell->addText($textlines[$i],'modTableTab');
         }
     }
 
