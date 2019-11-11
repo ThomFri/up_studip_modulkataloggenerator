@@ -403,6 +403,9 @@ class SubmitController extends AuthenticatedController {
 
             $currentSection->addPageBreak();
             $currentSection->addTitle("Modulzuordnung", 1); //array('size' => 14, 'underline' => Font::UNDERLINE_SINGLE));
+
+            $this->modulOrdnungCustom();
+
             foreach ($this->modulOrdnungsTabelle as $modTab) {
 
                 $currentSection->addText($modTab[0], $titleStyle, $leftStyle);
@@ -661,12 +664,12 @@ class SubmitController extends AuthenticatedController {
      * @param $modul String Modulzuordnung
      */
     public function modulUebersicht($cours, $modul){
-        $bool = true;
+        $bool = true; //toAdd
         foreach ($this->modulTabelle as $modTab) {
             if(in_array($modul, $modTab))
                $bool = false;
         }
-        if($bool){
+        if($bool){ //add
             array_push($this->modulTabelle, array($modul));
         }
 
@@ -679,9 +682,14 @@ class SubmitController extends AuthenticatedController {
         }
     }
 
+    /**
+     * Befüllt die Tabelle in der die Modulübersicht gespeichert ist
+     * @param $cours Course Kursobjekt
+     * @param $modul String Modulzuordnung
+     */
     public function modulOrdnung($cours, $modul){
         $bool = true;
-        foreach ($this->modulOrdnungsTabelle as $modTab) { //überprüfen, ob Modul schon im Table ist
+        foreach ($this->modulOrdnungsTabelle as $modTab) { //überprüfen, ob ModulZORDNUNG schon im Table ist
             if(in_array($modul, $modTab))
                 $bool = false;
         }
@@ -696,6 +704,39 @@ class SubmitController extends AuthenticatedController {
                 }
             }
         }
+    }
+
+    public function modulOrdnungCustom(){
+        //echo "test";
+        $tmpModulzuordnungenSource=$this->modulOrdnungsTabelle;
+        $tmpModulzuordnungenTarget=array();
+
+        $currentFreePos=0;
+
+        $moduleCostomOrder=array("Basismodule", "Wahlpflichtmodule");
+
+        foreach ($moduleCostomOrder as $currentModulePos) {
+            for($i = 0; $i<sizeof($tmpModulzuordnungenSource); $i++){
+                if($tmpModulzuordnungenSource[$i][0] == $currentModulePos) {
+                    $tmpModulzuordnungenTarget[$currentFreePos] = $tmpModulzuordnungenSource[$i];
+                    //for($j = 1; $j<sizeof($tmpModulzuordnungenSource[$i]); $j++){
+                    //    $tmpModulzuordnungenTarget[$currentFreePos][$j] = $tmpModulzuordnungenSource[$i][$j];
+                    //}
+                    $currentFreePos = $currentFreePos + 1;
+                    unset($tmpModulzuordnungenSource[$i]); //remove currenty re-added module
+                    break;
+                }
+            }
+        }
+
+        //add rest
+        //DOES NOT WORK asort($tmpModulzuordnungenSource); //sort
+        foreach ($tmpModulzuordnungenSource as $currentLeftModule) {
+            $tmpModulzuordnungenTarget[$currentFreePos] =  $currentLeftModule;
+            $currentFreePos = $currentFreePos + 1;
+        }
+
+        $this->modulOrdnungsTabelle =  $tmpModulzuordnungenTarget;
     }
 
     public function modulEinordnen($course, $modul){
