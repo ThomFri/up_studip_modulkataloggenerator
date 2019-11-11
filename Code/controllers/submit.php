@@ -119,13 +119,19 @@ class SubmitController extends AuthenticatedController {
         $headerStyle = array('name' => 'Tahoma', 'size' => 16, 'bold' => true);
 
         $tocSection = $phpWord->addSection(); //Inhaltsverzeichnisse
+        $tocFooter = $tocSection->addFooter();
+        $tocFooter->addPreserveText('Seite {PAGE} von {NUMPAGES}', null, array('alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER));
         $fontStyle12 = array('spaceAfter' => 60, 'size' => 12);
 
         $preContentSection = $phpWord->addSection(); //Zuordnungen
 
         $mainSection = $phpWord->addSection(array('breakType' => 'continuous')); //Inhalt des Dokuments
+        $mainFooter = $mainSection->addFooter();
+        $mainFooter->addPreserveText('Seite {PAGE} von {NUMPAGES}', null, array('alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER));
 
         //Styles
+        $styleFrontMatterHeading = array('name' => 'Arial', 'size' => 28, 'bold' => true,  'alignment' => Jc::CENTER);
+        $styleFrontMatterText    = array('name' => 'Arial', 'size' => 15, 'bold' => false, 'alignment' => Jc::CENTER);
         $titleStyle = array('name' => 'Arial', 'size' => 12, 'bold' => true);
         $centerStyle = array('alignment' => Jc::CENTER);
         $leftStyle = array('alignment' => Jc::LEFT);
@@ -142,25 +148,85 @@ class SubmitController extends AuthenticatedController {
 
 
         if ($inputArray['auftrag'] === 'modul') { //Modulkatalog erstellen
-            $headerSection->addImage(__DIR__.'/../src/logo01.png');
-            $headerSection->addTitle("Modulkatalog für " . $inputArray['studiengang'] .
-                " (" . $inputArray['po'] . ")" . " im " . $inputArray['semester'],0);
-            //$headerSection->addText("Enthaltene Module:", array('size' => 14, 'underline' => Font::UNDERLINE_SINGLE));
+            /*
+             * FRONT MATTER
+             */
+
+                /*
+                 * PREPROCESSING
+                 */
 
 
-            $headerSection->addText("\t".$inputArray['studiengang'], 'modTableTab');
-            $headerSection->addText($inputArray['studiengang']);
-            $headerSection->addText("(".$inputArray['po'].")");
-            $headerSection->addText($inputArray['semester']);
-            $headerSection->addText("Stand: ".date('d.m.Y'));
+                    $courseName = $inputArray['studiengang'];
+                    $courseNameSub = "";
+                    $nameBAMA=array("Bachelor", "Master");
+                    $frontMatterCourseFound=0;
 
-            $headerSection->addText("Falls Sie ältere Versionen des Modulkatalogs benötigen, setzen Sie sich bitte mit dem Dekanat der Wirtschaftswissenschaftlichen Fakultät in Verbindung (dekanat.wiwi@uni-passau.de).");
-            $headerSection->addText("Für alle aufgeführten Veranstaltungen des Modulkatalogs gelten die Studien- und Qualifikationsvoraussetzungen gemäß der jeweiligen Prüfungs- und Studienordnung.");
+                    foreach($nameBAMA as $name) {
+                        if(strpos($courseName, $name) !== false) {
+                            $frontMatterCourseFound = 1;
+                            $courseName = str_replace($name." ", "", $courseName);
+
+                            //Sonderfälle
+                            if($name == $nameBAMA[0] && $courseName == 'Wirtschaftsinformatik' && $inputArray['po'] == 'Version WS 2015'){
+                                $courseNameSub = "(Information Systems)";
+                            }
+
+                            break; //increase speed
+                        }
+                    }
+
+                    $semesterName = $inputArray['semester'];
+                    $semesterName = str_replace("WiSe", "WS", $semesterName);
+                    $semesterName = str_replace("SoSe", "SS", $semesterName);
+
+
+                /*
+                 * OUTPUT
+                 */
+
+                    //$headerSection->addTitle("Modulkatalog für " . $inputArray['studiengang'] .
+                    //    " (" . $inputArray['po'] . ")" . " im " . $inputArray['semester'],0);
+                    //$headerSection->addText("Enthaltene Module:", array('size' => 14, 'underline' => Font::UNDERLINE_SINGLE));
+                    //$headerSection->addText("\t".$inputArray['studiengang'], 'modTableTab');
+
+                    $headerSection->addImage(__DIR__.'/../src/logo01.png', array('width' => 300, 'alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER));
+
+                    if($frontMatterCourseFound == 1) {
+                        $headerSection->addText($name."-Studiengang", $styleFrontMatterHeading);
+                        $headerSection->addText("", $styleFrontMatterHeading);
+                    }
+
+                    $headerSection->addText($courseName, $styleFrontMatterHeading);
+
+                    if($courseNameSub !== "") {
+                        $headerSection->addText($courseNameSub, $styleFrontMatterHeading);
+                    }
+                    else {
+                        $headerSection->addText("", $styleFrontMatterHeading);
+                    }
+                    $headerSection->addText("", $styleFrontMatterHeading);
+
+                    $headerSection->addText("Modulkatalog", $styleFrontMatterHeading);
+                    $headerSection->addText("", $styleFrontMatterHeading);
+
+                    $headerSection->addText($semesterName, $styleFrontMatterHeading);
+
+                    $headerSection->addText("", $styleFrontMatterText);
+                    $headerSection->addText("Primäre Prüfungsordnung: ".$inputArray['po'], $styleFrontMatterText);
+                    $headerSection->addText("Stand: ".date('d. F Y'), $styleFrontMatterText);
+                    $headerSection->addText("", $styleFrontMatterText);
+                    $headerSection->addText("", $styleFrontMatterText);
+
+                    $headerSection->addText("Falls Sie ältere Versionen des Modulkatalogs benötigen, setzen Sie sich bitte mit dem Dekanat der Wirtschaftswissenschaftlichen Fakultät in Verbindung (dekanat.wiwi@uni-passau.de).", $styleFrontMatterText);
+                    $headerSection->addText("", $styleFrontMatterText);
+                    $headerSection->addText("Für alle aufgeführten Veranstaltungen des Modulkatalogs gelten die Studien- und Qualifikationsvoraussetzungen gemäß der jeweiligen Prüfungs- und Studienordnung.", $styleFrontMatterText);
 
 
 
             $tocSection->addTitle('Inhaltsverzeichnis');
             $toc = $tocSection->addTOC($fontStyle12);
+
 
             $count = 1;
 
