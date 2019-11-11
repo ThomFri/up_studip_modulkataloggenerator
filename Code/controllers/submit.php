@@ -414,7 +414,7 @@ class SubmitController extends AuthenticatedController {
             $currentSection->addPageBreak();
             $currentSection->addTitle("Modulzuordnung", 1); //array('size' => 14, 'underline' => Font::UNDERLINE_SINGLE));
 
-            $this->modulOrdnungCustom($moduleCostomOrder);
+            $this->modulzuordnungUndKurseOrdnen($moduleCostomOrder);
 
             foreach ($this->modulOrdnungsTabelle as $modTab) {
 
@@ -720,7 +720,7 @@ class SubmitController extends AuthenticatedController {
     /**
      * @param $moduleCostomOrder Ordered array of names of Schwerpunkte
      */
-    public function modulOrdnungCustom($moduleCostomOrder){
+    public function modulzuordnungUndKurseOrdnen($moduleCostomOrder){
         //echo "test";
         $tmpModulzuordnungenSource=$this->modulOrdnungsTabelle;
         $tmpModulzuordnungenTarget=array();
@@ -738,15 +738,39 @@ class SubmitController extends AuthenticatedController {
             }
         }
 
-        //add rest
+        //sort rest
         usort($tmpModulzuordnungenSource, function($a, $b) {
             return strcmp($a[0], $b[0]);
         });
-        //DOES NOT WORK asort($tmpModulzuordnungenSource); //sort
+
+        //add rest
         foreach ($tmpModulzuordnungenSource as $currentLeftModule) {
             $tmpModulzuordnungenTarget[$currentFreePos] =  $currentLeftModule;
             $currentFreePos = $currentFreePos + 1;
         }
+
+
+        //TODO: Kurse sortieren
+//        foreach ($tmpModulzuordnungenTarget as $modulKurse) {
+//            $tmp[0] = $modulKurse[0];
+//            unset($modulKurse[0]);
+//
+//            usort($modulKurse, function($a, $b) {
+//                return strcmp($a->name, $b->name);
+//
+////                if ($a == $b) {
+////                    return 0;
+////                }
+////                return ($a < $b) ? -1 : 1;
+//            });
+//
+//
+//            array_push($tmp[0], $modulKurse);
+//
+//            //$kursobjekt->veranstaltungsnummer."\t".$kursobjekt->name
+//
+//        }
+
 
         $this->modulOrdnungsTabelle =  $tmpModulzuordnungenTarget;
     }
