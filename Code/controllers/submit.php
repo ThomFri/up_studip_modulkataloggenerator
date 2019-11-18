@@ -750,26 +750,38 @@ class SubmitController extends AuthenticatedController {
         }
 
 
-        //TODO: Kurse sortieren
-//        foreach ($tmpModulzuordnungenTarget as $modulKurse) {
-//            $tmp[0] = $modulKurse[0];
-//            unset($modulKurse[0]);
-//
-//            usort($modulKurse, function($a, $b) {
-//                return strcmp($a->name, $b->name);
-//
-////                if ($a == $b) {
-////                    return 0;
-////                }
-////                return ($a < $b) ? -1 : 1;
-//            });
-//
-//
-//            array_push($tmp[0], $modulKurse);
-//
-//            //$kursobjekt->veranstaltungsnummer."\t".$kursobjekt->name
-//
-//        }
+        // Kurse der jeweiligen Schwerpunkte sortieren
+        $sorttype = "name";
+        //$sorttype = "num";
+
+        for($i = 0; $i<sizeof($tmpModulzuordnungenTarget); $i++){
+            //foreach ($tmpModulzuordnungenTarget as $modulKurse) {
+            $modulKurse = $tmpModulzuordnungenTarget[$i];
+            $tmp = $modulKurse[0];
+            unset($modulKurse[0]);
+
+            usort($modulKurse, function($a, $b) use ($sorttype) {
+                if($sorttype == 'name') {
+                    return strcmp($a->name, $b->name);
+                }
+                elseif($sorttype == 'num') {
+                    $a_num = preg_replace("/[^0-9.]/", "", $a->veranstaltungsnummer);
+                    $b_num = preg_replace("/[^0-9.]/", "", $b->veranstaltungsnummer);
+
+                    if ($a_num == $b_num) {
+                        return 0;
+                    }
+                    else {
+                        return ($a_num < $b_num) ? -1 : 1;
+                    }
+                }
+            });
+
+            $modulKurse[0] = $tmp;
+            $tmpModulzuordnungenTarget[$i] = $modulKurse;
+            //$kursobjekt->veranstaltungsnummer."\t".$kursobjekt->name
+
+        }
 
 
         $this->modulOrdnungsTabelle =  $tmpModulzuordnungenTarget;
