@@ -669,6 +669,21 @@ class SubmitController extends AuthenticatedController {
     }
 
     /**
+     * @param $table Table Tabellenobjekt, in welches geschrieben wird
+     * @param $titel String Titel des Eintrags in die Tabelle
+     * @param $inhalt String Inhalt des Eintrags in die Tabelle
+     * @param $ignoreEmpty Sollen leere Inhalte ignoriert werden?
+     */
+    public function addTextToTable2($table, $titel, $inhalt, $ignoreEmpty = false){
+        if($inhalt == '' && $ignoreEmpty) {
+            #do nothing
+        }
+        else {
+            $this->addTextToTable($table, $titel, $inhalt);
+        }
+    }
+
+    /**
      * Befüllt die Tabelle in der die Modulübersicht gespeichert ist
      * @param $cours Course Kursobjekt
      * @param $modul String Modulzuordnung
@@ -830,24 +845,44 @@ class SubmitController extends AuthenticatedController {
      */
     public function addTableToDoc($cours, $table, $modul)
     {
-        $this->addTextToTable($table, "Untertitel:", $cours->untertitel);
-        $this->addTextToTable($table, "Veranstaltungsnr.:", $cours->veranstaltungsnummer);
-        $this->addTextToTable($table, "Typ:", $cours->getSemType()['name']);
-        $this->addTextToTable($table, "Modulzuordnung:", $modul);
-        $this->addTextToTable($table, "Lehrende:", $this->dozenten($cours));
-        $this->addTextToTable($table, "Heimateinrichtung:", Institute::find($cours->institut_id)->name);
-        $this->addTextToTable($table, "Art:", $cours->art);
-        $this->addTextToTable($table, "Beschreibung:", $cours->beschreibung);
-        $this->addTextToTable($table, "ECTS:", $cours->ects);
-        $this->addTextToTable($table, "Teilnehmer:", $cours->teilnehmer);
-        $this->addTextToTable($table, "Vorrausetzungen:", $cours->vorrausetzungen);
-        $this->addTextToTable($table, "Lernorganisation:", $cours->lernorga);
-        $this->addTextToTable($table, "Leistungsnachweis:", $cours->leistungsnachweis);
-        foreach ($cours->datafields as $datafield)
-            if($datafield->name==="SWS"||$datafield->name==="Turnus"||
-                $datafield->name==="Literatur"||$datafield->name==="Qualifikationsziele")
-                $this->addTextToTable($table, $datafield->name.":", $datafield->content);
-        $this->addTextToTable($table, "Sonstiges:", $cours->sonstiges);
+        foreach ($cours->datafields as $datafield) {
+            if ($datafield->name === "SWS") {
+                $tmp_sws = $datafield->content;
+            }
+            elseif ($datafield->name === "Turnus") {
+                $tmp_turnus = $datafield->content;
+            }
+            elseif ($datafield->name === "Literatur") {
+                $tmp_literatur = $datafield->content;
+            }
+            elseif ($datafield->name === "Qualifikationsziele") {
+                $tmp_qualifikationsziele = $datafield->content;
+            }
+        }
+
+
+        //sortierter Inhalt
+        $this->addTextToTable2($table, "Untertitel:",                            $cours->untertitel,                                                       true);
+        $this->addTextToTable2($table, "Veranstaltungsnummer:",                  $cours->veranstaltungsnummer,                                             true);
+        $this->addTextToTable2($table, "Typ der Veranstaltung:",                 $cours->getSemType()['name'],                                             true);
+        $this->addTextToTable2($table, "Moduleinordnung:",                       $modul,                                                                   true);
+        $this->addTextToTable2($table, "Dozenten:",                              $this->dozenten($cours),                                                  true);
+        $this->addTextToTable2($table, "Heimateinrichtung:",                     Institute::find($cours->institut_id)->name,                               true);
+        $this->addTextToTable2($table, "Art/Form",                               $cours->art,                                                              true);
+        $this->addTextToTable2($table, "Inhalt des Moduls / Beschreibung:",      $cours->beschreibung,                                                     true);
+        $this->addTextToTable2($table, "Qualifikationsziele des Moduls:",        $tmp_qualifikationsziele,                                                 true);
+        $this->addTextToTable2($table, "Lehr- und Lernmethoden des Moduls:",     $cours->lernorga,                                                         true);
+        $this->addTextToTable2($table, "Voraussetzungen für die Teilnahme:",     $cours->vorrausetzungen,                                                  true);
+        $this->addTextToTable2($table, "Häufigkeit des Angebots des Moduls:",    $tmp_turnus,                                                              true);
+        $this->addTextToTable2($table, "Länge des Moduls:",                      "",                                                                true);
+        $this->addTextToTable2($table, "Workload des Moduls:",                   "",                                                                true);
+        $this->addTextToTable2($table, "ECTS:",                                  $cours->ects,                                                             true);
+        $this->addTextToTable2($table, "Prüfungsnummer:",                        "",                                                                true);
+        $this->addTextToTable2($table, "Art der Prüfung/Voraussetzung für die Vergabe von Leistungspunkten/Dauer der Prüfung:", $cours->leistungsnachweis, true);
+        $this->addTextToTable2($table, "Empfohlene Literaturliste (Lehr- und Lernmaterialien, Literatur):", $tmp_literatur,                                true);
+        $this->addTextToTable2($table, "Sonstiges / Besonderes (z.B. Online-Anteil, Praxisbesuche, Gastvorträge, etc.):", $cours->sonstiges,               true);
+        //$this->addTextToTable2($table, "Teilnehmer:",                            $cours->teilnehmer,                                                       true);
+
 
         //Logdatei:
         //Notice
