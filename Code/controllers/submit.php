@@ -135,7 +135,7 @@ class SubmitController extends AuthenticatedController {
         $titleStyle = array('name' => 'Arial', 'size' => 12, 'bold' => true);
         $centerStyle = array('alignment' => Jc::CENTER);
         $leftStyle = array('alignment' => Jc::LEFT);
-        $tableStyle = array('cellMargin' => 40);
+        $tableStyle = array('cellMargin' => 40, 'borderSize' => 1);
         $endInfoStyle = array('size' => 12, 'underline' => Font::UNDERLINE_SINGLE);
 
         //
@@ -657,14 +657,35 @@ class SubmitController extends AuthenticatedController {
      * @param $titel String Titel des Eintrags in die Tabelle
      * @param $inhalt String Inhalt des Eintrags in die Tabelle
      */
+    //TODO: INDENT!
     public function addTextToTable($table, $titel, $inhalt){
+        $fixLists = true;
         $table->addRow();
         $table->addCell()->addText($titel);
         $tmpCell = $table->addCell();
 
         $textlines = explode("\n", $this->encodeText($inhalt));
         for ($i = 0; $i < sizeof($textlines); $i++) {
-            $tmpCell->addText($textlines[$i],'modTableTab');
+            $textToPrint = $textlines[$i];
+
+            //if(substr($textlines[$i], 0, 1) == '•' || substr($textlines[$i], 0, 1) == '–')
+            if($fixLists && preg_match('/[\'•–]/', mb_substr($textToPrint, 0, 1)))
+            {
+                if(substr($textToPrint, 1, 2) == '  ') {
+                    $textToPrint = mb_substr($textToPrint, 3);
+                }
+                elseif(substr($textToPrint, 1, 1) == ' ') {
+                    $textToPrint = mb_substr($textToPrint, 2);
+                }
+                else {
+                    $textToPrint = mb_substr($textToPrint, 1);
+                }
+
+                $tmpCell->addListItem($textToPrint, 1, 'modTableTab');
+            }
+            else {
+                $tmpCell->addText($textToPrint, 'modTableTab');
+            }
         }
     }
 
