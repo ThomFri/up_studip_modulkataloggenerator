@@ -138,9 +138,13 @@ class SubmitController extends AuthenticatedController {
         $tableStyle = array('cellMargin' => 40, 'borderSize' => 1);
         $endInfoStyle = array('size' => 12, 'underline' => Font::UNDERLINE_SINGLE);
 
+
+
+
+
         //
         $phpWord->addParagraphStyle('modTableTab', array('tabs' => array(new \PhpOffice\PhpWord\Style\Tab('left', 7000))));
-
+        $phpWord->addParagraphStyle('P-listStyle', array('hanging'=>0, 'left'=>0, 'lineHeight'=>1, 'color'=>'FFFAE3'));
         $phpWord->addTitleStyle(0, $titleStyle);
         $phpWord->addTitleStyle(1, $headerStyle, $centerStyle);
         $phpWord->addTitleStyle(2, $headerStyle, $centerStyle);
@@ -664,6 +668,8 @@ class SubmitController extends AuthenticatedController {
         $table->addCell()->addText($titel);
         $tmpCell = $table->addCell();
 
+
+
         $textlines = explode("\n", $this->encodeText($inhalt));
         for ($i = 0; $i < sizeof($textlines); $i++) {
             $textToPrint = $textlines[$i];
@@ -671,17 +677,16 @@ class SubmitController extends AuthenticatedController {
             //if(substr($textlines[$i], 0, 1) == '•' || substr($textlines[$i], 0, 1) == '–')
             if($fixLists && preg_match('/[\'•–]/', mb_substr($textToPrint, 0, 1)))
             {
-                if(substr($textToPrint, 1, 2) == '  ') {
+                if(mb_substr($textToPrint, 1, 2) == '  ') {
                     $textToPrint = mb_substr($textToPrint, 3);
                 }
-                elseif(substr($textToPrint, 1, 1) == ' ') {
+                elseif(mb_substr($textToPrint, 1, 1) == ' ') {
                     $textToPrint = mb_substr($textToPrint, 2);
                 }
                 else {
                     $textToPrint = mb_substr($textToPrint, 1);
                 }
-
-                $tmpCell->addListItem($textToPrint, 1, 'modTableTab');
+                $tmpCell->addListItem($textToPrint, 0);
             }
             else {
                 $tmpCell->addText($textToPrint, 'modTableTab');
