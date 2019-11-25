@@ -347,6 +347,7 @@ class SubmitController extends AuthenticatedController {
                                 foreach ($courses as $cours) {
                                     if ($cours->start_semester->name === $inputArray['semester'] && //nach ausgewähltem Semester filtern
                                         in_array($cours->getSemType()['name'], $relevanteVaTypen) && //nach Vorlesungen und Seminaren filtern
+
                                         $f->name !== "Studium Generale"){ //Studium Generale nicht anzeigen
                                         //$headerSection->addText($count .". ".$this->encodeText($cours->name));
                                         //$mainSection->addTitle($count++ .". ".$this->encodeText($cours->name),2);
@@ -354,7 +355,9 @@ class SubmitController extends AuthenticatedController {
                                         //$this->addTableToDoc($cours, $table, $f->name);
                                         //$this->modulUebersicht($cours, $f->name);
                                         $this->modulEinordnen($cours, $f->name);
+
                                         //$mainSection->addPageBreak();
+
 
                                     }
                                 }
@@ -844,7 +847,7 @@ class SubmitController extends AuthenticatedController {
 
 
     public function modulSeiteSchreiben($kursobjekt, $modulzuordnung, $section, $tabStyle){
-        $section->addTitle($this->encodeText($kursobjekt->veranstaltungsnummer."\t".$kursobjekt->name),3);
+        $section->addTitle($this->encodeText($kursobjekt->veranstaltungsnummer."\t".$kursobjekt->name." (PN: ".$this->getPN($kursobjekt).")"),3);
 
         $table = $section->addTable($tabStyle);
         $this->addTableToDoc($kursobjekt, $table, $modulzuordnung);
@@ -863,6 +866,13 @@ class SubmitController extends AuthenticatedController {
 
     }
 
+    public function getPN($cours) {
+        $studyareastring = $cours->study_areas->first()->name;
+        $result = substr($studyareastring, 1, strpos($studyareastring, " | ")-1);
+
+        return $result;
+    }
+
     /**
      * Schreibt Kursdetails in die angehängte Tabelle
      * @param $cours Course Kursobjekt
@@ -871,6 +881,7 @@ class SubmitController extends AuthenticatedController {
      */
     public function addTableToDoc($cours, $table, $modul)
     {
+        $tmp_debug ="";
         foreach ($cours->datafields as $datafield) {
             if ($datafield->name === "SWS") {
                 $tmp_sws = $datafield->content;
@@ -884,8 +895,11 @@ class SubmitController extends AuthenticatedController {
             elseif ($datafield->name === "Qualifikationsziele") {
                 $tmp_qualifikationsziele = $datafield->content;
             }
+//            else{
+//                $tmp_debug = $tmp_debug." ".$datafield->name." ".$datafield->content;
+//            }
         }
-
+        $tmp_pn = $this->getPN($cours);
 
         //sortierter Inhalt
         $this->addTextToTable2($table, "Untertitel:",                            $cours->untertitel,                                                       true);
@@ -907,6 +921,7 @@ class SubmitController extends AuthenticatedController {
         $this->addTextToTable2($table, "Art der Prüfung/Voraussetzung für die Vergabe von Leistungspunkten/Dauer der Prüfung:", $cours->leistungsnachweis, true);
         $this->addTextToTable2($table, "Empfohlene Literaturliste (Lehr- und Lernmaterialien, Literatur):", $tmp_literatur,                                true);
         $this->addTextToTable2($table, "Sonstiges / Besonderes (z.B. Online-Anteil, Praxisbesuche, Gastvorträge, etc.):", $cours->sonstiges,               true);
+        $this->addTextToTable2($table, "Prüfungsnummer:", $tmp_pn,               true);
         //$this->addTextToTable2($table, "Teilnehmer:",                            $cours->teilnehmer,                                                       true);
 
 
