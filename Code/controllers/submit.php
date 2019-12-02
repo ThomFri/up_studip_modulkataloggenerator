@@ -774,13 +774,14 @@ class SubmitController extends AuthenticatedController {
     /**
      * @param $moduleCostomOrder Ordered array of names of Schwerpunkte
      */
-    public function modulzuordnungUndKurseOrdnen($moduleCostomOrder){
+    public function modulzuordnungUndKurseOrdnen($moduleCostomOrder, $removeEmpty = true){
         //echo "test";
         $tmpModulzuordnungenSource=$this->modulOrdnungsTabelle;
         $tmpModulzuordnungenTarget=array();
 
         $currentFreePos=0;
 
+        // Konfigurierte Schwerpunktreihenfolge einhalten
         foreach ($moduleCostomOrder as $currentModulePos) {
             for($i = 0; $i<sizeof($tmpModulzuordnungenSource); $i++){
                 if($tmpModulzuordnungenSource[$i][0] == $currentModulePos) {
@@ -803,6 +804,14 @@ class SubmitController extends AuthenticatedController {
             $currentFreePos = $currentFreePos + 1;
         }
 
+        //leere Schwerpunkte entfernen
+        if($removeEmpty) {
+            for($i = 0; $i<sizeof($tmpModulzuordnungenTarget); $i++){
+                if(sizeof($tmpModulzuordnungenTarget[$i]) <= 1) { //only title itself is countained!
+                    unset($tmpModulzuordnungenTarget[$i]); //remove Schwerpunkt.
+                }
+            }
+        }
 
         // Kurse der jeweiligen Schwerpunkte sortieren
         $sorttype = "name";
@@ -831,12 +840,16 @@ class SubmitController extends AuthenticatedController {
                 }
             });
 
-            $modulKurse[0] = $tmp;
-            $tmpModulzuordnungenTarget[$i] = $modulKurse;
+            $modulKurseFertig = array($tmp);
+            $modulKurseFertig = array_merge($modulKurseFertig, $modulKurse);
+            $tmpModulzuordnungenTarget[$i] = $modulKurseFertig;
             //$kursobjekt->veranstaltungsnummer."\t".$kursobjekt->name
-
         }
 
+        $tmpOverride=$tmpModulzuordnungenTarget;
+
+        //tmporary override!
+        $tmpModulzuordnungenTarget = $tmpOverride;
 
         $this->modulOrdnungsTabelle =  $tmpModulzuordnungenTarget;
     }
