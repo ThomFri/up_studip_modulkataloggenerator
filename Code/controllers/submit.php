@@ -122,6 +122,7 @@ class SubmitController extends AuthenticatedController {
         $tocFooter = $tocSection->addFooter();
         $tocFooter->addPreserveText('Seite {PAGE} von {NUMPAGES}', null, array('alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER));
         $fontStyle12 = array('spaceAfter' => 60, 'size' => 12);
+        $fontStyle11 = array('spaceAfter' => 60, 'size' => 11);
 
         $preContentSection = $phpWord->addSection(); //Zuordnungen
 
@@ -174,11 +175,13 @@ class SubmitController extends AuthenticatedController {
                     $courseName = $inputArray['studiengang'];
                     $courseNameSub = "";
                     $nameBAMA=array("Bachelor", "Master");
+                    $courseLevel=""; //Bachelor oder Master
                     $frontMatterCourseFound=0;
 
                     foreach($nameBAMA as $name) {
                         if(strpos($courseName, $name) !== false) {
                             $frontMatterCourseFound = 1;
+                            $courseLevel = $name;
                             $courseName = str_replace($name." ", "", $courseName);
 
                             //Sonderfälle
@@ -207,7 +210,7 @@ class SubmitController extends AuthenticatedController {
                     $headerSection->addImage(__DIR__.'/../src/logo01.png', array('width' => 300, 'alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER));
 
                     if($frontMatterCourseFound == 1) {
-                        $headerSection->addText($name."-Studiengang", $styleFrontMatterHeading);
+                        $headerSection->addText($courseLevel."-Studiengang", $styleFrontMatterHeading);
                         $headerSection->addText("", $styleFrontMatterHeading);
                     }
 
@@ -239,8 +242,9 @@ class SubmitController extends AuthenticatedController {
 
 
             $tocSection->addTitle('Inhaltsverzeichnis');
-            $toc = $tocSection->addTOC($fontStyle12);
-
+            //$tmpStyle123 = array('indentation' => array('left' => 540, 'right' => 120), 'bold' => true);
+            //$tocSection->setStyle($tmpStyle123);
+            $toc = $tocSection->addTOC($fontStyle11, array('indent' => 100));
 
             $count = 1;
 
@@ -680,7 +684,10 @@ class SubmitController extends AuthenticatedController {
             //if(substr($textlines[$i], 0, 1) == '•' || substr($textlines[$i], 0, 1) == '–')
             if($fixLists && preg_match('/[\'•–]/', mb_substr($textToPrint, 0, 1)))
             {
-                if(mb_substr($textToPrint, 1, 2) == '  ') {
+                if(preg_match('/[\t]/', mb_substr($textToPrint, 1, 1))) {
+                    $textToPrint = mb_substr($textToPrint, 2);
+                }
+                elseif(mb_substr($textToPrint, 1, 2) == '  ') {
                     $textToPrint = mb_substr($textToPrint, 3);
                 }
                 elseif(mb_substr($textToPrint, 1, 1) == ' ') {
@@ -703,11 +710,14 @@ class SubmitController extends AuthenticatedController {
      * @param $inhalt String Inhalt des Eintrags in die Tabelle
      * @param $ignoreEmpty Sollen leere Inhalte ignoriert werden?
      */
-    public function addTextToTable2($table, $titel, $inhalt, $ignoreEmpty = false){
+    public function addTextToTable2($table, $titel, $inhalt, $ignoreEmpty = false, $firstLetterUppercase = true){
         if($inhalt == '' && $ignoreEmpty) {
             #do nothing
         }
         else {
+            if($firstLetterUppercase)
+                $inhalt = ucfirst($inhalt);
+
             $this->addTextToTable($table, $titel, $inhalt);
         }
     }
@@ -847,7 +857,26 @@ class SubmitController extends AuthenticatedController {
 
 
     public function modulSeiteSchreiben($kursobjekt, $modulzuordnung, $section, $tabStyle){
-        $section->addTitle($this->encodeText($kursobjekt->veranstaltungsnummer."\t".$kursobjekt->name." (PN: ".$this->getPN($kursobjekt).")"),3);
+        $addVeranstaltungsnummer = true;
+        $removeBAMA = true;
+        $addPN = false;
+
+        $nameToPrint = "";
+
+        if($addVeranstaltungsnummer)
+            $nameToPrint = $nameToPrint.$kursobjekt->veranstaltungsnummer."\t";
+
+        $kursname = $kursobjekt->name;
+
+        if($removeBAMA)
+            $kursname = str_replace(" (Bachelor)", "", str_replace(" (Master)", "", $kursname));
+
+        $nameToPrint = $nameToPrint.$kursname;
+
+        if($addPN)
+            $nameToPrint = $nameToPrint." (PN: ".$this->getPN($kursobjekt).")";
+
+        $section->addTitle($this->encodeText($nameToPrint),3);
 
         $table = $section->addTable($tabStyle);
         $this->addTableToDoc($kursobjekt, $table, $modulzuordnung);
@@ -868,7 +897,7 @@ class SubmitController extends AuthenticatedController {
 
     public function getPN($cours) {
         $studyareastring = $cours->study_areas->first()->name;
-        $result = substr($studyareastring, 1, strpos($studyareastring, " | ")-1);
+        $result = substr($studyareastring, 0, strpos($studyareastring, " | "));
 
         return $result;
     }
@@ -882,6 +911,13 @@ class SubmitController extends AuthenticatedController {
     public function addTableToDoc($cours, $table, $modul)
     {
         $tmp_debug ="";
+        $tabLang = "de";
+        $tmp_dur = 0;
+        $tmp_start = "";
+        $tmp_end = "";
+        $tmp_laenge = "";
+
+        //get additional data
         foreach ($cours->datafields as $datafield) {
             if ($datafield->name === "SWS") {
                 $tmp_sws = $datafield->content;
@@ -895,11 +931,42 @@ class SubmitController extends AuthenticatedController {
             elseif ($datafield->name === "Qualifikationsziele") {
                 $tmp_qualifikationsziele = $datafield->content;
             }
-//            else{
-//                $tmp_debug = $tmp_debug." ".$datafield->name." ".$datafield->content;
-//            }
+            elseif ($datafield->name === "Workload") {
+                $tmp_workload = $datafield->content;
+            }
+            elseif ($datafield->name === "Hinweise zur Anrechenbarkeit") {
+                $tmp_anrechenbarkeit = $datafield->content;
+            }
+            else{
+                $tmp_debug = $tmp_debug."'".$datafield->name."'='".$datafield->content."';  ";
+            }
         }
+
         $tmp_pn = $this->getPN($cours);
+
+
+        //preprocess data
+        if($cours->untertitel == "(ENGLISCH)") {
+            $tabLang = "en";
+            $tmp_debug = $tmp_debug." LANG: EN";
+        }
+
+        //        if($tmp_start != '' && $tmp_end != ''){
+        //            $tmp_dur = $tmp_start." - ".$tmp_end." => ". round((strtotime($tmp_end) - strtotime($tmp_start)) / (60 * 60 * 24)); //date_diff(strtotime($tmp_end) - strtotime($tmp_start));
+        //
+        //            if($tmp_dur > 100)
+        //                $tmp_laenge = "2 semestrig";
+        //            else {
+        //                $tmp_laenge = "1 semestrig";
+        //            }
+        //        }
+
+
+        $turnusNamen = array("jeweils im Wintersemster", "jeweils im Sommersemester",
+                             "jedes Sommersemester, 1 Semester", "Jedes Sommersemester, 1 Semester", "jedes Wintersemester, 1 Semester", "Jedes Wintersemester, 1 Semester");
+        if($tmp_turnus != "" && !in_array($tmp_turnus, $turnusNamen)) {
+                $tmp_turnus = $tmp_turnus."\nBitte entnehmen Sie gegebenenfalls die konkrete Dauer aus den weiteren Angaben.";
+        }
 
         //sortierter Inhalt
         $this->addTextToTable2($table, "Untertitel:",                            $cours->untertitel,                                                       true);
@@ -914,15 +981,16 @@ class SubmitController extends AuthenticatedController {
         $this->addTextToTable2($table, "Lehr- und Lernmethoden des Moduls:",     $cours->lernorga,                                                         true);
         $this->addTextToTable2($table, "Voraussetzungen für die Teilnahme:",     $cours->vorrausetzungen,                                                  true);
         $this->addTextToTable2($table, "Häufigkeit des Angebots des Moduls:",    $tmp_turnus,                                                              true);
-        $this->addTextToTable2($table, "Länge des Moduls:",                      "",                                                                true);
-        $this->addTextToTable2($table, "Workload des Moduls:",                   "",                                                                true);
+        $this->addTextToTable2($table, "Länge des Moduls:",                      $tmp_dur,                                                                 true);
+        $this->addTextToTable2($table, "Workload des Moduls:",                   $tmp_workload,                                                            true);
         $this->addTextToTable2($table, "ECTS:",                                  $cours->ects,                                                             true);
-        $this->addTextToTable2($table, "Prüfungsnummer:",                        "",                                                                true);
+        $this->addTextToTable2($table, "Prüfungsnummer:",                        $tmp_pn,                                                                  true);
         $this->addTextToTable2($table, "Art der Prüfung/Voraussetzung für die Vergabe von Leistungspunkten/Dauer der Prüfung:", $cours->leistungsnachweis, true);
         $this->addTextToTable2($table, "Empfohlene Literaturliste (Lehr- und Lernmaterialien, Literatur):", $tmp_literatur,                                true);
+        $this->addTextToTable2($table, "Hinweise zur Anrechenbarkeit:",          $tmp_anrechenbarkeit,                                                     true);
         $this->addTextToTable2($table, "Sonstiges / Besonderes (z.B. Online-Anteil, Praxisbesuche, Gastvorträge, etc.):", $cours->sonstiges,               true);
-        $this->addTextToTable2($table, "Prüfungsnummer:", $tmp_pn,               true);
         //$this->addTextToTable2($table, "Teilnehmer:",                            $cours->teilnehmer,                                                       true);
+        $this->addTextToTable2($table, "DEBUG:",                                 $tmp_debug,                                                               true);
 
 
         //Logdatei:
