@@ -19,6 +19,10 @@ use Studip\Button;
                 <?php endforeach ?>
             </select>
         </label>
+        <label title="Vorangegangenes Semester mit aufnahmen (ganzjährige Sicht)" >
+            <input name="modul_fullyear" type="checkbox">
+            Jahres-Katalog erstellen (mit obigem + vorangegangenem Semester)
+        </label>
         <label>
             Fakultät
             <select name="modul_faculty" id="fac-drop" required="required">

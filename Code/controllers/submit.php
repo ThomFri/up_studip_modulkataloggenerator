@@ -91,6 +91,7 @@ class SubmitController extends AuthenticatedController {
         } elseif ($auftrag === "modul") {
             $inputArray = array(
                 "semester" => Request::get("modul_semester"),
+                "fullyear" => Request::get("modul_fullyear"),
                 "fakultaet" => Request::get("modul_faculty"),
                 "studiengang" => Request::get("modul_major"),
                 "po" => Request::get("modul_regulation"),
@@ -198,6 +199,27 @@ class SubmitController extends AuthenticatedController {
                     $semesterName = str_replace("SoSe", "SS", $semesterName);
 
 
+                    $applicableSemesters = array($inputArray['semester']);
+                    if($inputArray['fullyear'] === 'on') {
+                        $semesterPrev = "";
+                        if(substr($inputArray['semester'],0,4) == "WiSe") {
+                            $tmpNum = substr($inputArray['semester'],5,2);
+                            $semesterPrev = "SoSe ".$tmpNum;
+                        }
+                        elseif(substr($inputArray['semester'],0,4) == "WiSe") {
+                            $tmpNum = intval(substr($inputArray['semester'],5,2))+1;
+                            if(strlen($tmpNum)==1)
+                            {
+                                $tmpNum = "0".$tmpNum;
+                            }
+                            $semesterPrev = "WiSe ".$tmpNum;
+                        }
+
+                        array_push($applicableSemesters, $semesterPrev);
+                    }
+
+
+
                 /*
                  * OUTPUT
                  */
@@ -249,8 +271,11 @@ class SubmitController extends AuthenticatedController {
             $count = 1;
 
 
-            $file = 'Modulkatalog_' . $inputArray['semester'] . '_' .
-                $inputArray['studiengang'];
+            $file = 'Modulkatalog_';
+            foreach($applicableSemesters as $applicableSemester) {
+                $file = $file.$applicableSemester."_";
+            }
+            $file = $file.$inputArray['studiengang'];
 
             /**
              * Vorgehensweise: Iteration durch den Fakultätsbaum und Abgleich mit den Eingaben (inputArray)
@@ -349,7 +374,8 @@ class SubmitController extends AuthenticatedController {
                             foreach ($nextTreeStep as $n) {
                                 $courses = $n->courses;
                                 foreach ($courses as $cours) {
-                                    if ($cours->start_semester->name === $inputArray['semester'] && //nach ausgewähltem Semester filtern
+                                    if (in_array($cours->start_semester->name, $applicableSemesters) &&
+                                        //$cours->start_semester->name === $inputArray['semester'] && //nach ausgewähltem Semester filtern
                                         in_array($cours->getSemType()['name'], $relevanteVaTypen) && //nach Vorlesungen und Seminaren filtern
 
                                         $f->name !== "Studium Generale"){ //Studium Generale nicht anzeigen
@@ -377,7 +403,8 @@ class SubmitController extends AuthenticatedController {
                             foreach ($nextTreeStep as $n) {
                                 $courses = $n->courses;
                                 foreach ($courses as $cours) {
-                                    if ($cours->start_semester->name === $inputArray['semester'] && //nach ausgewähltem Semester filtern
+                                    if (in_array($cours->start_semester->name, $applicableSemesters) &&
+                                        //$cours->start_semester->name === $inputArray['semester'] && //nach ausgewähltem Semester filtern
                                         in_array($cours->getSemType()['name'], $relevanteVaTypen)){ //nach Vorlesungen und Seminaren filtern
                                         //$headerSection->addText($count .". ".$this->encodeText($cours->name));
                                         //$mainSection->addTitle($count++ .". ".$this->encodeText($cours->name), 2);
@@ -398,7 +425,8 @@ class SubmitController extends AuthenticatedController {
                         foreach ($faecher as $f) {
                             $courses = $f->courses;
                             foreach ($courses as $cours) {
-                                if ($cours->start_semester->name === $inputArray['semester'] && //nach ausgewähltem Semester filtern
+                                if (in_array($cours->start_semester->name, $applicableSemesters) &&
+                                    //$cours->start_semester->name === $inputArray['semester'] && //nach ausgewähltem Semester filtern
                                     in_array($cours->getSemType()['name'], $relevanteVaTypen)){ //nach Vorlesungen und Seminaren filtern
                                     //$headerSection->addText($count .". ".$this->encodeText($cours->name));
                                     //$mainSection->addTitle($count++ .". ".$this->encodeText($cours->name), 2);
@@ -1078,7 +1106,7 @@ class SubmitController extends AuthenticatedController {
         //        }
 
 
-        $turnusNamen = array("jeweils im Wintersemster", "jeweils im Sommersemester",
+        $turnusNamen = array("jeweils im Wintersemster", "Jeweils im Wintersemster", "jeweils im Sommersemester", "Jeweils im Sommersemester",
                              "jedes Sommersemester, 1 Semester", "Jedes Sommersemester, 1 Semester", "jedes Wintersemester, 1 Semester", "Jedes Wintersemester, 1 Semester");
         if($tmp_turnus != "" && !in_array($tmp_turnus, $turnusNamen)) {
                 $tmp_turnus = $tmp_turnus."\nBitte entnehmen Sie gegebenenfalls die konkrete Dauer aus den weiteren Angaben.";
