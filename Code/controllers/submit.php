@@ -708,7 +708,7 @@ class SubmitController extends AuthenticatedController {
             $textToPrint = $textlines[$i];
 
             //if(substr($textlines[$i], 0, 1) == '•' || substr($textlines[$i], 0, 1) == '–')
-            if($fixLists && preg_match('/[\'•–]/', mb_substr($textToPrint, 0, 1)))
+            if($fixLists && preg_match('/[\'•–-]/', mb_substr($textToPrint, 0, 1)))
             {
                 if(preg_match('/[\t]/', mb_substr($textToPrint, 1, 1))) {
                     $textToPrint = mb_substr($textToPrint, 2);
@@ -725,7 +725,12 @@ class SubmitController extends AuthenticatedController {
                 $tmpCell->addListItem($textToPrint, 0);
             }
             else {
-                $tmpCell->addText($textToPrint, 'modTableTab');
+                //check for empty lines in
+                $begin_check = 0;
+                //$begin_check = sizeof($textlines)-1; //if only last line
+                if(!(empty($textToPrint) || $textToPrint === " " || (strlen($textToPrint)==1 && preg_match('/^([^\d]+)$/', $textToPrint))) && $i > $begin_check) { //no empty lines
+                    $tmpCell->addText($textToPrint, 'modTableTab');
+                }
             }
         }
     }
