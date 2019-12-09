@@ -199,6 +199,7 @@ class SubmitController extends AuthenticatedController {
                     $semesterName = str_replace("SoSe", "SS", $semesterName);
 
 
+                    //Ganzjahreskatalog?
                     $applicableSemesters = array($inputArray['semester']);
                     if($inputArray['fullyear'] === 'on') {
                         $semesterPrev = "";
@@ -983,10 +984,43 @@ class SubmitController extends AuthenticatedController {
     }
 
     //https://akrabat.com/substr_in_array/
-    public function in_array_substr($item, array $hintArray)
+    public function in_array_substr($item, array $hintArray, $lowercase=true)
     {
+        return ($this->in_array_strpos($item, $hintArray, $lowercase) != -1);
+    }
+
+    public function in_array_strpos($item, array $hintArray, $lowercase=true)
+    {
+        if($lowercase) {
+            $item = strtolower($item);
+        }
+
         foreach ($hintArray as $hint) {
-            if (false !== strpos($item, $hint)) {
+            if($lowercase) {
+                $hint = strtolower($hint);
+            }
+
+            $pos = strpos($item, $hint);
+            if (false !== $pos) {
+                return $pos;
+            }
+        }
+        return -1;
+    }
+
+    public function in_array_strposZero($item, array $hintArray, $lowercase=true)
+    {
+        if($lowercase) {
+            $item = strtolower($item);
+        }
+
+        foreach ($hintArray as $hint) {
+            if($lowercase) {
+                $hint = strtolower($hint);
+            }
+
+            $pos = strpos($item, $hint);
+            if (false !== $pos && $pos == 0) {
                 return true;
             }
         }
@@ -1106,9 +1140,19 @@ class SubmitController extends AuthenticatedController {
         //        }
 
 
-        $turnusNamen = array("jeweils im Wintersemster", "Jeweils im Wintersemster", "jeweils im Sommersemester", "Jeweils im Sommersemester",
-                             "jedes Sommersemester, 1 Semester", "Jedes Sommersemester, 1 Semester", "jedes Wintersemester, 1 Semester", "Jedes Wintersemester, 1 Semester");
-        if($tmp_turnus != "" && !in_array($tmp_turnus, $turnusNamen)) {
+        //ORDER MATTERS (SPEED!)
+        $turnusNamen = array("Jährlich, jeweils im Wintersemester", "Jährlich, jeweils im Sommersemester",
+                             "jeweils im Wintersemester", "jeweils im Sommersemester",
+                             "jeweils im Wintersemster", "jeweils im Sommersemster",
+                             "jedes Semester",
+                             "jedes Semster",
+                             "jedes Sommersemester, 1 Semester", "jedes Wintersemester, 1 Semester",
+                             "jedes Sommersemester", "jedes Wintersemester",
+                             "Jedes Sommer- und Wintersemester", "Jedes Winter- und Sommersemester",
+                             "every summer semester", "every winter semester",
+                             "Bitte beachten Sie die Hinweise auf der Lehrstuhl-Homepage",
+                             "Sommersemester", "Wintersemester");
+        if($tmp_turnus != "" && !$this->in_array_strposZero($tmp_turnus, $turnusNamen)) {
                 $tmp_turnus = $tmp_turnus."\nBitte entnehmen Sie gegebenenfalls die konkrete Dauer aus den weiteren Angaben.";
         }
 
