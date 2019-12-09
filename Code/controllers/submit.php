@@ -427,6 +427,7 @@ class SubmitController extends AuthenticatedController {
 
             $this->modulzuordnungUndKurseOrdnen($moduleCostomOrder);
 
+
             foreach ($this->modulOrdnungsTabelle as $modTab) {
 
                 $currentSection->addText($modTab[0], $titleStyle, $leftStyle);
@@ -455,12 +456,37 @@ class SubmitController extends AuthenticatedController {
             $mainSection->addPageBreak();
 
             //Module sortiert schreiben
-            foreach ($this->modulOrdnungsTabelle as $modTab) {
+            $schonGezeigtStattAusgabe = true;
+            for($i = 0; $i<sizeof($this->modulOrdnungsTabelle); $i++) {//$this->modulOrdnungsTabelle as $modTab) { //Loop über Schwerpunkte
+                $modTab = $this->modulOrdnungsTabelle[$i];
 
+                //Schwerpunktseite schreiben
                 $this->modulGruppeSchreiben($modTab[0], $mainSection);
 
-                for ($j = 1; $j < sizeof($modTab); $j++) {
-                    $this->modulSeiteSchreiben($modTab[$j], $modTab[0], $mainSection, $tableStyle);
+                //Enthaltene Veranstaltungen schreiben
+                for ($j = 1; $j < sizeof($modTab); $j++) { //Loop über Veranstaltungen
+                    $nurVerweis = false;
+                    $verweisAuf="";
+
+                    if($schonGezeigtStattAusgabe) {
+                        for($k = 0; $k < $i; $k++)
+                        {
+                            for($l = 1; $l<sizeof($this->modulOrdnungsTabelle[$k]); $l++) {
+                                if($this->modulOrdnungsTabelle[$k][$l]->veranstaltungsnummer == $modTab[$j]->veranstaltungsnummer){
+                                    $nurVerweis = true;
+                                    $verweisAuf=$this->modulOrdnungsTabelle[$k][0];
+                                    break;
+                                }
+                            }
+
+                            if($nurVerweis){
+                                break;
+                            }
+
+                        }
+                    }
+
+                    $this->modulSeiteSchreiben($modTab[$j], $modTab[0], $mainSection, $tableStyle, $nurVerweis, $verweisAuf);
                 }
 
             }
@@ -846,11 +872,6 @@ class SubmitController extends AuthenticatedController {
             //$kursobjekt->veranstaltungsnummer."\t".$kursobjekt->name
         }
 
-        $tmpOverride=$tmpModulzuordnungenTarget;
-
-        //tmporary override!
-        $tmpModulzuordnungenTarget = $tmpOverride;
-
         $this->modulOrdnungsTabelle =  $tmpModulzuordnungenTarget;
     }
 
@@ -869,7 +890,7 @@ class SubmitController extends AuthenticatedController {
 
 
 
-    public function modulSeiteSchreiben($kursobjekt, $modulzuordnung, $section, $tabStyle){
+    public function modulSeiteSchreiben($kursobjekt, $modulzuordnung, $section, $tabStyle, $nurVerweis = false, $verweisAuf){
         $addVeranstaltungsnummer = true;
         $removeBAMA = true;
         $addPN = false;
@@ -889,10 +910,20 @@ class SubmitController extends AuthenticatedController {
         if($addPN)
             $nameToPrint = $nameToPrint." (PN: ".$this->getPN($kursobjekt).")";
 
+        if($nurVerweis) {
+            $nameToPrint = $nameToPrint." (siehe ".$verweisAuf.")";
+        }
+
         $section->addTitle($this->encodeText($nameToPrint),3);
 
-        $table = $section->addTable($tabStyle);
-        $this->addTableToDoc($kursobjekt, $table, $modulzuordnung);
+        if($nurVerweis) {
+            $section->addText("Bitte entnehmen Sie die Veranstaltungsdetails aus der unter \"".$verweisAuf."\" gezeigten Übersicht.");
+        }
+        else {
+            $table = $section->addTable($tabStyle);
+            $this->addTableToDoc($kursobjekt, $table, $modulzuordnung);
+        }
+
         $section->addPageBreak();
     }
 
