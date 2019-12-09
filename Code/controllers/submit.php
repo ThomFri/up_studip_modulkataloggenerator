@@ -946,6 +946,17 @@ class SubmitController extends AuthenticatedController {
         return $result;
     }
 
+    //https://akrabat.com/substr_in_array/
+    public function in_array_substr($item, array $hintArray)
+    {
+        foreach ($hintArray as $hint) {
+            if (false !== strpos($item, $hint)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Schreibt Kursdetails in die angehängte Tabelle
      * @param $cours Course Kursobjekt
@@ -956,6 +967,7 @@ class SubmitController extends AuthenticatedController {
     {
         $tmp_debug ="";
         $tabLang = "de";
+        $englishHints = array("(ENGLISCH)", "Course language is English.");
         $tmp_dur = 0;
         $tmp_start = "";
         $tmp_end = "";
@@ -988,12 +1000,64 @@ class SubmitController extends AuthenticatedController {
 
         $tmp_pn = $this->getPN($cours);
 
-
         //preprocess data
-        if($cours->untertitel == "(ENGLISCH)") {
+        if($this->in_array_substr($cours->untertitel, $englishHints) || $this->in_array_substr($cours->sonstiges, $englishHints)) {
             $tabLang = "en";
-            $tmp_debug = $tmp_debug." LANG: EN";
+            //setlocale (LC_ALL, 'en_GB');
+            setTempLanguage(false,"en_GB");
+            //setLocaleEnv("en_GB");
+            $tmp_debug = $tmp_debug." LANG: en/".getUserLanguage(get_userid())."/".get_accepted_languages();
         }
+        $tabTexts = array(
+            "de" => array(
+                'unt' => 'Untertitel',
+                'vnr' => 'Veranstaltungsnummer',
+                'typ' => 'Typ der Veranstaltung',
+                'mod' => 'Moduleinordnung',
+                'doz' => 'Dozenten',
+                'ein' => 'Heimateinrichtung',
+                'art' => 'Art/Form',
+                'inh' => 'Inhalt des Moduls / Beschreibung',
+                'qua' => 'Qualifikationsziele des Moduls',
+                'met' => 'Lehr- und Lernmethoden des Moduls',
+                'vor' => 'Voraussetzungen für die Teilnahme',
+                'hae' => 'Häufigkeit des Angebots des Moduls',
+                'lae' => 'Länge des Moduls',
+                'wor' => 'Workload des Moduls',
+                'ect' => 'ECTS',
+                'pnr' => 'Prüfungsnummer',
+                'pru' => 'Art der Prüfung/Voraussetzung für die Vergabe von Leistungspunkten/Dauer der Prüfung',
+                'lit' => 'Empfohlene Literaturliste (Lehr- und Lernmaterialien, Literatur)',
+                'anr' => 'Hinweise zur Anrechenbarkeit',
+                'son' => 'Sonstiges / Besonderes (z.B. Online-Anteil, Praxisbesuche, Gastvorträge, etc.)',
+                'tei' => 'Teilnehmer',
+                'deb' => 'DEBUG:'
+            ),
+            "en" => array(
+                'unt' => 'Subtitle',
+                'vnr' => 'Course Number',
+                'typ' => 'Courses Type',
+                'mod' => 'Course Allocation',
+                'doz' => 'Lecturer',
+                'ein' => 'Home Institute',
+                'art' => 'Type/Form',
+                'inh' => 'Content/Description',
+                'qua' => 'Qualification Goals',
+                'met' => 'Learning organization',
+                'vor' => 'Pre-Requisites',
+                'hae' => 'Rotation',
+                'lae' => 'Length',
+                'wor' => 'Workload',
+                'ect' => 'ECTS',
+                'pnr' => 'Test Number',
+                'pru' => 'Performance Record',
+                'lit' => 'Recommended Literature (Teaching and Learning Materials, Literature)',
+                'anr' => 'Notes on Creditability',
+                'son' => 'Miscellaneous',
+                'tei' => 'Current Number of Participants',
+                'deb' => 'DEBUG:'
+            ),
+        );
 
         //        if($tmp_start != '' && $tmp_end != ''){
         //            $tmp_dur = $tmp_start." - ".$tmp_end." => ". round((strtotime($tmp_end) - strtotime($tmp_start)) / (60 * 60 * 24)); //date_diff(strtotime($tmp_end) - strtotime($tmp_start));
@@ -1013,28 +1077,31 @@ class SubmitController extends AuthenticatedController {
         }
 
         //sortierter Inhalt
-        $this->addTextToTable2($table, "Untertitel:",                            $cours->untertitel,                                                       true);
-        $this->addTextToTable2($table, "Veranstaltungsnummer:",                  $cours->veranstaltungsnummer,                                             true);
-        $this->addTextToTable2($table, "Typ der Veranstaltung:",                 $cours->getSemType()['name'],                                             true);
-        $this->addTextToTable2($table, "Moduleinordnung:",                       $modul,                                                                   true);
-        $this->addTextToTable2($table, "Dozenten:",                              $this->dozenten($cours),                                                  true);
-        $this->addTextToTable2($table, "Heimateinrichtung:",                     Institute::find($cours->institut_id)->name,                               true);
-        $this->addTextToTable2($table, "Art/Form",                               $cours->art,                                                              true);
-        $this->addTextToTable2($table, "Inhalt des Moduls / Beschreibung:",      $cours->beschreibung,                                                     true);
-        $this->addTextToTable2($table, "Qualifikationsziele des Moduls:",        $tmp_qualifikationsziele,                                                 true);
-        $this->addTextToTable2($table, "Lehr- und Lernmethoden des Moduls:",     $cours->lernorga,                                                         true);
-        $this->addTextToTable2($table, "Voraussetzungen für die Teilnahme:",     $cours->vorrausetzungen,                                                  true);
-        $this->addTextToTable2($table, "Häufigkeit des Angebots des Moduls:",    $tmp_turnus,                                                              true);
-        $this->addTextToTable2($table, "Länge des Moduls:",                      $tmp_dur,                                                                 true);
-        $this->addTextToTable2($table, "Workload des Moduls:",                   $tmp_workload,                                                            true);
-        $this->addTextToTable2($table, "ECTS:",                                  $cours->ects,                                                             true);
-        $this->addTextToTable2($table, "Prüfungsnummer:",                        $tmp_pn,                                                                  true);
-        $this->addTextToTable2($table, "Art der Prüfung/Voraussetzung für die Vergabe von Leistungspunkten/Dauer der Prüfung:", $cours->leistungsnachweis, true);
-        $this->addTextToTable2($table, "Empfohlene Literaturliste (Lehr- und Lernmaterialien, Literatur):", $tmp_literatur,                                true);
-        $this->addTextToTable2($table, "Hinweise zur Anrechenbarkeit:",          $tmp_anrechenbarkeit,                                                     true);
-        $this->addTextToTable2($table, "Sonstiges / Besonderes (z.B. Online-Anteil, Praxisbesuche, Gastvorträge, etc.):", $cours->sonstiges,               true);
-        //$this->addTextToTable2($table, "Teilnehmer:",                            $cours->teilnehmer,                                                       true);
-        $this->addTextToTable2($table, "DEBUG:",                                 $tmp_debug,                                                               true);
+        $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['unt'].$textSuf, $cours->untertitel,                                                       true);
+        $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['vnr'].$textSuf, $cours->veranstaltungsnummer,                                             true);
+        $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['typ'].$textSuf, $cours->getSemType()['name'],                                             true);
+        $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['mod'].$textSuf, $modul,                                                                   true);
+        $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['doz'].$textSuf, $this->dozenten($cours),                                                  true);
+        $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['ein'].$textSuf, Institute::find($cours->institut_id)->name,                               true);
+        $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['art'].$textSuf, $cours->art,                                                              true);
+        $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['inh'].$textSuf, $cours->beschreibung,                                                     true);
+        $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['qua'].$textSuf, $tmp_qualifikationsziele,                                                 true);
+        $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['met'].$textSuf, $cours->lernorga,                                                         true);
+        $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['vor'].$textSuf, $cours->vorrausetzungen,                                                  true);
+        $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['hae'].$textSuf, $tmp_turnus,                                                              true);
+        $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['lae'].$textSuf, $tmp_dur,                                                                 true);
+        $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['wor'].$textSuf, $tmp_workload,                                                            true);
+        $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['ect'].$textSuf, $cours->ects,                                                             true);
+        $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['pnr'].$textSuf, $tmp_pn,                                                                  true);
+        $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['pru'].$textSuf, $cours->leistungsnachweis,                                                true);
+        $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['lit'].$textSuf, $tmp_literatur,                                                           true);
+        $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['anr'].$textSuf, $tmp_anrechenbarkeit,                                                     true);
+        $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['son'].$textSuf, $cours->sonstiges,                                                        true);
+        //$this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['tei'].$textSuf, $cours->teilnehmer,                                                       true);
+        $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['deb'].$textSuf, $tmp_debug,                                                               true);
+
+
+        restoreLanguage();
 
 
         //Logdatei:
