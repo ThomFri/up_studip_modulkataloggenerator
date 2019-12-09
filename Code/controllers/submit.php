@@ -364,7 +364,13 @@ class SubmitController extends AuthenticatedController {
                 "Interdisziplinäres Vertiefungsangebot",
                 "Interdisziplinärer Block");
 
-            $relevanteVaTypen = array("Vorlesung", "Seminar"); //sollten weitere Typen im Modulkatalog gewünscht sein, können diese hier hinzugefügt werden
+            //sollten weitere Typen im Modulkatalog gewünscht sein, können diese hier hinzugefügt werden
+            $relevanteVaTypen = array(
+                "Vorlesung",
+                "Seminar",
+                "Praktikum"//,
+            //  "Blockveranstaltung"
+            );
 
             foreach ($module as $m) {
                 if (in_array($m->name, $relevanteModule)) {
@@ -471,8 +477,14 @@ class SubmitController extends AuthenticatedController {
                     $modTable->addRow();
                     $cell = $modTable->addCell();
                     $cours = $modTab[$j];
+                    $kursname = $cours->veranstaltungsnummer;
 
-                    $cell->addText($this->encodeText($cours->veranstaltungsnummer."\t".$cours->name));
+                    $removeBAMA = true;
+
+                    if($removeBAMA)
+                        $kursname = str_replace(" (Bachelor)", "", str_replace(" (Master)", "", $kursname));
+
+                    $cell->addText($this->encodeText($kursname."\t".$cours->name));
                     //$cell->addListItem($this->encodeText($modTab[$j]), ListItem::TYPE_BULLET_FILLED);
                 }
 
