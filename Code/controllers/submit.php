@@ -728,7 +728,10 @@ class SubmitController extends AuthenticatedController {
                 //check for empty lines in
                 $begin_check = 0;
                 //$begin_check = sizeof($textlines)-1; //if only last line
-                if(!(empty($textToPrint) || $textToPrint === " " || (strlen($textToPrint)==1 && preg_match('/^([^\d]+)$/', $textToPrint))) && $i > $begin_check) { //no empty lines
+                if((empty($textToPrint) || $textToPrint === " " || (strlen($textToPrint)==1 && preg_match('/^([^\d]+)$/', $textToPrint))) && ($i >= $begin_check)) { //no empty lines
+                    //skip line
+                }
+                else {
                     $tmpCell->addText($textToPrint, 'modTableTab');
                 }
             }
