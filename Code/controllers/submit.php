@@ -477,20 +477,21 @@ class SubmitController extends AuthenticatedController {
                     $modTable->addRow();
                     $cell = $modTable->addCell();
                     $cours = $modTab[$j];
-                    $kursname = $cours->veranstaltungsnummer;
+                    $kursname = $cours->name;
 
                     $removeBAMA = true;
 
                     if($removeBAMA)
                         $kursname = str_replace(" (Bachelor)", "", str_replace(" (Master)", "", $kursname));
 
-                    $cell->addText($this->encodeText($kursname."\t".$cours->name));
+                    $cell->addText($this->encodeText($cours->veranstaltungsnummer."\t".$kursname));
                     //$cell->addListItem($this->encodeText($modTab[$j]), ListItem::TYPE_BULLET_FILLED);
                 }
 
                 $tocSection->addTextBreak();
             }
             $tocSection->addPageBreak(); //erstellt Seitenumbruch nach der Modulzuordnung
+
 
 
             $mainSection->addTitle("Module nach Zuordnung",1);
