@@ -99,6 +99,15 @@ use Studip\Button;
                 <input type="radio" name="fo_aufteilung" value="schwerpunkt" checked>
                 Nach Schwerpunkten
                 <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <input name="fo_veranstaltungsVerweis" type="checkbox">
+                <i>Bei Kursen die mehrere Schwerpunkte haben nur beim ersten Auftreten Kursseite ausgeben und ansonsten nur drauf verweisen</i>
+                <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <input name="fo_veranstaltungsVerweisTOC" type="checkbox">
+                <i>Diesen Verweis zusätzlich im Inhaltsverzeichnis kenntlich machen</i>
+                <br>
                 <input type="radio" name="fo_aufteilung" value="alle">
                 Keine Gruppierung (-> einfach alle Kurse auflisten)
             </label>

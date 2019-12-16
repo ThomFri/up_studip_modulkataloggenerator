@@ -85,6 +85,8 @@ class SubmitController extends AuthenticatedController {
         $this->name_bachelorMasterSuffix = "-Studiengang"; //nur für Deckblatt
         $this->name_inhaltsverzeichnis = 'Inhaltsverzeichnis';
         $this->name_modulzuordnung = "Modulzuordnung";
+        $this->name_moduleNachZuordnung = "Module nach Zuordnung";
+        $this->name_alleModule = "Moduledetails";
         $this->name_hinweise = "Hinweise zu anderen Veranstaltungen";
         $this->relevanteModule = array(
             //alle Module der verschiedenen Prüfungsordnungen und Studiengänge, die relevante Kurse enthalten
@@ -220,6 +222,8 @@ class SubmitController extends AuthenticatedController {
                     "auftrag" => $auftrag,
                     "profUsername" => "",
                     "entferneBaMe" => Request::get("fo_bamaBereinigen"),
+                    "verweisStattAusgabe" => Request::get("fo_veranstaltungsVerweis"),
+                    "verweisStattAusgabeTOC" => Request::get("fo_veranstaltungsVerweisTOC"),
                     "aufteilung" => Request::get("fo_aufteilung"),
                     "sorttype" => Request::get("fo_sort1"),
                     "sprachenkonvertierung" => Request::get("fo_lang1"),
@@ -578,58 +582,60 @@ class SubmitController extends AuthenticatedController {
 
             //Kursseiten
             //==========
+
+            //Aufteilung nach Schwerpunkten
             if($this->inputArray['aufteilung'] == "schwerpunkt") {
 
-                $mainSection->addTitle("Module nach Zuordnung", 1);
+                //Überschrift
+                $mainSection->addTitle($this->name_moduleNachZuordnung, 1);
                 $mainSection->addPageBreak();
 
-                //Module sortiert schreiben
-                $schonGezeigtStattAusgabe = true;
+                //Veranstaltungen sortiert schreiben
                 for ($i = 0; $i < sizeof($this->tabSchwerpunktKurse); $i++) {//$this->modulOrdnungsTabelle as $modTab) { //Loop über Schwerpunkte
                     $current_schwerpunktMitKursen = $this->tabSchwerpunktKurse[$i];
+                    $current_schwerpunkt = $current_schwerpunktMitKursen[0];
 
                     //Schwerpunktseite schreiben
-                    $this->modulGruppeSchreiben($current_schwerpunktMitKursen[0], $mainSection);
+                    $this->modulGruppeSchreiben($current_schwerpunkt, $mainSection);
 
-                    //Enthaltene Veranstaltungen schreiben
+                    //Enthaltene Veranstaltungen schreiben bzw. über diese loopen
                     for ($j = 1; $j < sizeof($current_schwerpunktMitKursen); $j++) { //Loop über Veranstaltungen
-                        $nurVerweis = false;
+                        $bool_nurVerweis = false;
                         $verweisAuf = "";
 
-                        if ($schonGezeigtStattAusgabe) {
-                            for ($k = 0; $k < $i; $k++) {
+                        if ($this->inputArray['verweisStattAusgabe'] == "on") {
+                            //soll falls Veranstaltung schon enthalten nur auf dieser verwiesen werden?
+                            // ==> Prüfen, ob Veranstaltung bereits vorher im Array vorhanden ist (also schon ausgegeben wurde)
+                            for ($k = 0; $k < $i; $k++) { //Array nochmal bis zur aktuellen Veranstaltung im aktuellen Schwerpunkt durchlaufen
                                 for ($l = 1; $l < sizeof($this->tabSchwerpunktKurse[$k]); $l++) {
-                                    if ($this->tabSchwerpunktKurse[$k][$l]->veranstaltungsnummer == $current_schwerpunktMitKursen[$j]->veranstaltungsnummer) {
-                                        $nurVerweis = true;
-                                        $verweisAuf = $this->tabSchwerpunktKurse[$k][0];
-                                        break;
+                                    if ($this->tabSchwerpunktKurse[$k][$l]->veranstaltungsnummer == $current_schwerpunktMitKursen[$j]->veranstaltungsnummer) { //Vergleich anhand der Nummer (sollte am schnellsten sein)
+                                        $bool_nurVerweis = true;
+                                        $verweisAuf = $this->tabSchwerpunktKurse[$k][0]; //auf gefundenen Schwerpunkt verweisen.
+                                        break 2; //Speedup; Äußeres for wird beendet
                                     }
                                 }
-
-                                if ($nurVerweis) {
-                                    break;
-                                }
-
                             }
                         }
-
-                        $this->modulSeiteSchreiben($current_schwerpunktMitKursen[$j], $mainSection, $this->custom_styles['tableStyle'], 3, $nurVerweis, $verweisAuf);
+                        //Veranstaltungsseite bzw. ggf. nur Verweis schreiben
+                        //$this->modulSeiteSchreiben($current_schwerpunktMitKursen[$j], $mainSection, $this->custom_styles['tableStyle'], 3, $bool_nurVerweis, $verweisAuf);
                     }
 
                 }
             }
+            //Alle Kurse ohne Gruppierung schreiben
             elseif ($this->inputArray['aufteilung'] == "alle") {
-                $mainSection->addTitle("Moduledetails", 1);
+                //Überschrift
+                $mainSection->addTitle($this->name_alleModule, 1);
                 $mainSection->addPageBreak();
 
-                //Module sortiert schreiben
+                //Veranstaltungen sortiert schreiben
                 for ($i = 0; $i < sizeof($this->tabKursSchwerpunkte); $i++) { //Loop über Kurse
-                    $this->modulSeiteSchreiben($this->tabKursSchwerpunkte[$i][0], $mainSection, $this->custom_styles['tableStyle'], 2,false, null);
+                    $current_kursobjekt = $this->tabKursSchwerpunkte[$i][0];
+                    //Veranstaltungsseite schreiben
+                    $this->modulSeiteSchreiben($current_kursobjekt, $mainSection, $this->custom_styles['tableStyle'], 2,false, null);
                 }
             }
-            else {
-                //ERROR
-            }
+            else {} //ERROR
 
 
             /*
