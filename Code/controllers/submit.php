@@ -21,8 +21,8 @@ include __DIR__.'/../composer/vendor/autoload.php';
  * dient zur Überprüfung auf Mehrfacheinträge
  */
 class SubmitController extends AuthenticatedController {
-    private $modulOrdnungsTabelle;
-    private $modulOrdnungsTabelleSimple;
+    private $tabSchwepunktKurs;
+    private $tabKursSchwerpunkt;
     private $inputArray;
 
     /**
@@ -36,8 +36,8 @@ class SubmitController extends AuthenticatedController {
         $this->set_layout(Request::isXhr() ? null : $GLOBALS['template_factory']->open('layouts/base'));
 
         $this->modulTabelle = array();
-        $this->modulOrdnungsTabelle = array();
-        $this->modulOrdnungsTabelleSimple = array();
+        $this->tabSchwepunktKurs = array();
+        $this->tabKursSchwerpunkt = array();
         $this->kurse = array();
     }
 
@@ -469,7 +469,7 @@ class SubmitController extends AuthenticatedController {
             $this->modulzuordnungUndKurseOrdnen($moduleCostomOrder, $this->inputArray['sorttype']);
 
 
-            foreach ($this->modulOrdnungsTabelle as $modTab) {
+            foreach ($this->tabSchwepunktKurs as $modTab) {
 
                 $currentSection->addText($modTab[0], $titleStyle, $leftStyle);
 
@@ -507,8 +507,8 @@ class SubmitController extends AuthenticatedController {
 
                 //Module sortiert schreiben
                 $schonGezeigtStattAusgabe = true;
-                for ($i = 0; $i < sizeof($this->modulOrdnungsTabelle); $i++) {//$this->modulOrdnungsTabelle as $modTab) { //Loop über Schwerpunkte
-                    $modTab = $this->modulOrdnungsTabelle[$i];
+                for ($i = 0; $i < sizeof($this->tabSchwepunktKurs); $i++) {//$this->modulOrdnungsTabelle as $modTab) { //Loop über Schwerpunkte
+                    $modTab = $this->tabSchwepunktKurs[$i];
 
                     //Schwerpunktseite schreiben
                     $this->modulGruppeSchreiben($modTab[0], $mainSection);
@@ -520,10 +520,10 @@ class SubmitController extends AuthenticatedController {
 
                         if ($schonGezeigtStattAusgabe) {
                             for ($k = 0; $k < $i; $k++) {
-                                for ($l = 1; $l < sizeof($this->modulOrdnungsTabelle[$k]); $l++) {
-                                    if ($this->modulOrdnungsTabelle[$k][$l]->veranstaltungsnummer == $modTab[$j]->veranstaltungsnummer) {
+                                for ($l = 1; $l < sizeof($this->tabSchwepunktKurs[$k]); $l++) {
+                                    if ($this->tabSchwepunktKurs[$k][$l]->veranstaltungsnummer == $modTab[$j]->veranstaltungsnummer) {
                                         $nurVerweis = true;
-                                        $verweisAuf = $this->modulOrdnungsTabelle[$k][0];
+                                        $verweisAuf = $this->tabSchwepunktKurs[$k][0];
                                         break;
                                     }
                                 }
@@ -545,8 +545,8 @@ class SubmitController extends AuthenticatedController {
                 $mainSection->addPageBreak();
 
                 //Module sortiert schreiben
-                for ($i = 0; $i < sizeof($this->modulOrdnungsTabelleSimple); $i++) { //Loop über Kurse
-                    $this->modulSeiteSchreiben($this->modulOrdnungsTabelleSimple[$i][0], $mainSection, $tableStyle, 2,false, null);
+                for ($i = 0; $i < sizeof($this->tabKursSchwerpunkt); $i++) { //Loop über Kurse
+                    $this->modulSeiteSchreiben($this->tabKursSchwerpunkt[$i][0], $mainSection, $tableStyle, 2,false, null);
                 }
             }
             else {
@@ -849,19 +849,19 @@ class SubmitController extends AuthenticatedController {
      */
     public function modulOrdnung($kursobjekt, $modulzuordnung){
         $bool = true;
-        foreach ($this->modulOrdnungsTabelle as $modTab) { //überprüfen, ob Modulzuordnung (also Schwerpunktname) schon im Table ist
+        foreach ($this->tabSchwepunktKurs as $modTab) { //überprüfen, ob Modulzuordnung (also Schwerpunktname) schon im Table ist
             if(in_array($modulzuordnung, $modTab))
                 $bool = false;
         }
         if($bool){ // nicht im Table
-            array_push($this->modulOrdnungsTabelle, array($modulzuordnung));
+            array_push($this->tabSchwepunktKurs, array($modulzuordnung));
         }
         //Modulzuordnung (also Schwerpunktname) ist erstes Element im Array $this->modulOrdnungsTabelle[0]
 
-        for ($i = 0; $i<sizeof($this->modulOrdnungsTabelle); $i++){
-            for($j = 0; $j<sizeof($this->modulOrdnungsTabelle[$i]); $j++){
-                if($this->modulOrdnungsTabelle[$i][$j] === $modulzuordnung){
-                    array_push($this->modulOrdnungsTabelle[$i], $kursobjekt);
+        for ($i = 0; $i<sizeof($this->tabSchwepunktKurs); $i++){
+            for($j = 0; $j<sizeof($this->tabSchwepunktKurs[$i]); $j++){
+                if($this->tabSchwepunktKurs[$i][$j] === $modulzuordnung){
+                    array_push($this->tabSchwepunktKurs[$i], $kursobjekt);
                 }
             }
         }
@@ -875,14 +875,14 @@ class SubmitController extends AuthenticatedController {
     public function modulOrdnungSimple($kursobjekt, $modulzuordnung){
         $bool = true; //isNew
 
-        for ($i = 0; $i<sizeof($this->modulOrdnungsTabelleSimple); $i++){
-            if($this->modulOrdnungsTabelleSimple[$i][0] == $kursobjekt) {
+        for ($i = 0; $i<sizeof($this->tabKursSchwerpunkt); $i++){
+            if($this->tabKursSchwerpunkt[$i][0] == $kursobjekt) {
 //                for($j = 1; $j<sizeof($this->modulOrdnungsTabelleSimple[$i]); $j++){
 //
 //                }
                 //Kurs ist bereits in Array -> Nur Schwerpunkt hinzufügen.
                 $bool = false;
-                array_push($this->modulOrdnungsTabelleSimple[$i], $modulzuordnung);
+                array_push($this->tabKursSchwerpunkt[$i], $modulzuordnung);
 
                 break; //increase speed
             }
@@ -890,8 +890,8 @@ class SubmitController extends AuthenticatedController {
 
         //Neuen Kurs mit Schwerpunkt hinzufügen
         if($bool) {
-            $nextFreeIndex = sizeof($this->modulOrdnungsTabelleSimple);
-            $this->modulOrdnungsTabelleSimple[$nextFreeIndex] = array($kursobjekt, $modulzuordnung);
+            $nextFreeIndex = sizeof($this->tabKursSchwerpunkt);
+            $this->tabKursSchwerpunkt[$nextFreeIndex] = array($kursobjekt, $modulzuordnung);
         }
     }
 
@@ -901,7 +901,7 @@ class SubmitController extends AuthenticatedController {
     public function modulzuordnungUndKurseOrdnen($moduleCostomOrder, $sorttype, $removeEmpty = true){
 
         //modulOrdnungsTabelle Sortieren
-                $tmpModulzuordnungenSource=$this->modulOrdnungsTabelle;
+                $tmpModulzuordnungenSource=$this->tabSchwepunktKurs;
                 $tmpModulzuordnungenTarget=array();
 
                 $currentFreePos=0;
@@ -969,11 +969,11 @@ class SubmitController extends AuthenticatedController {
                     //$kursobjekt->veranstaltungsnummer."\t".$kursobjekt->name
                 }
 
-                $this->modulOrdnungsTabelle =  $tmpModulzuordnungenTarget;
+                $this->tabSchwepunktKurs =  $tmpModulzuordnungenTarget;
 
 
         //modulOrdnungsTabelleSimple Sortieren
-                $tmpModulzuordnungenSimpleSource=$this->modulOrdnungsTabelleSimple;
+                $tmpModulzuordnungenSimpleSource=$this->tabKursSchwerpunkt;
                 $tmpModulzuordnungenSimpleTarget=array();
 
 
@@ -1036,7 +1036,7 @@ class SubmitController extends AuthenticatedController {
                 }
 
 
-               $this->modulOrdnungsTabelleSimple =  $tmpModulzuordnungenSimpleTarget;
+               $this->tabKursSchwerpunkt =  $tmpModulzuordnungenSimpleTarget;
     }
 
     public function sortViaName($a, $b){
@@ -1113,9 +1113,9 @@ class SubmitController extends AuthenticatedController {
 
     public function getSchwerpunkt($kursobjekt) {
         $result = "";
-        for($i = 0; sizeof($this->modulOrdnungsTabelleSimple); $i++) {
-            if($this->modulOrdnungsTabelleSimple[$i][0] == $kursobjekt) {
-                $result = implode("hallo1234 \n", array_slice($this->modulOrdnungsTabelleSimple[$i], 1));
+        for($i = 0; sizeof($this->tabKursSchwerpunkt); $i++) {
+            if($this->tabKursSchwerpunkt[$i][0] == $kursobjekt) {
+                $result = implode("hallo1234 \n", array_slice($this->tabKursSchwerpunkt[$i], 1));
 
                 break; //increase speed
             }
