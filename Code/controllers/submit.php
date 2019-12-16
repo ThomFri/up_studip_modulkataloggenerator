@@ -617,7 +617,7 @@ class SubmitController extends AuthenticatedController {
                             }
                         }
                         //Veranstaltungsseite bzw. ggf. nur Verweis schreiben
-                        //$this->modulSeiteSchreiben($current_schwerpunktMitKursen[$j], $mainSection, $this->custom_styles['tableStyle'], 3, $bool_nurVerweis, $verweisAuf);
+                        $this->modulSeiteSchreiben($current_schwerpunktMitKursen[$j], $mainSection, $this->custom_styles['tableStyle'], 3, $bool_nurVerweis, $verweisAuf);
                     }
 
                 }
@@ -959,12 +959,12 @@ class SubmitController extends AuthenticatedController {
 
         for ($i = 0; $i<sizeof($this->tabKursSchwerpunkte); $i++){
             if($this->tabKursSchwerpunkte[$i][0] == $kursobjekt) {
-//                for($j = 1; $j<sizeof($this->modulOrdnungsTabelleSimple[$i]); $j++){
-//
-//                }
                 //Kurs ist bereits in Array -> Nur Schwerpunkt hinzufügen.
                 $bool = false;
-                array_push($this->tabKursSchwerpunkte[$i], $modulzuordnung);
+                //TODO: TEST AGAIN
+                $tmp = $this->tabKursSchwerpunkte[$i];
+                array_push($tmp, $modulzuordnung);
+                $this->tabKursSchwerpunkte[$i] = $tmp;
 
                 break; //increase speed
             }
@@ -1195,14 +1195,13 @@ class SubmitController extends AuthenticatedController {
 
     public function getSchwerpunkt($kursobjekt) {
         $result = "";
-        for($i = 0; sizeof($this->tabKursSchwerpunkte); $i++) {
-            if($this->tabKursSchwerpunkte[$i][0] == $kursobjekt) {
-                $result = implode("hallo1234 \n", array_slice($this->tabKursSchwerpunkte[$i], 1));
 
+        for($i = 0; $i < sizeof($this->tabKursSchwerpunkte); $i++) {
+            if($this->tabKursSchwerpunkte[$i][0]->veranstaltungsnummer == $kursobjekt->veranstaltungsnummer) { //Vergleich über Nummer
+                $result = implode("\n", array_slice($this->tabKursSchwerpunkte[$i], 1));
                 break; //increase speed
             }
         }
-
         return $result;
     }
 
@@ -1408,9 +1407,9 @@ class SubmitController extends AuthenticatedController {
         $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['son'].$textSuf, $cours->sonstiges,                                                        true);
         //$this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['tei'].$textSuf, $cours->teilnehmer,                                                       true);
         //debugfeld schreiben?
-        if($this->inputArray['debug'] == "on") {
-            $this->addTextToTable2($table, $textPre . $tabTexts[$tabLang]['deb'] . $textSuf, $tmp_debug, true);
-        }
+//        if($this->inputArray['debug'] == "on") {
+//            $this->addTextToTable2($table, $textPre . $tabTexts[$tabLang]['deb'] . $textSuf, $tmp_debug, true);
+//        }
 
 
         restoreLanguage();
