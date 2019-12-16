@@ -77,10 +77,55 @@ class SubmitController extends AuthenticatedController {
         $this->custom_styles['PlistStyle'] = array('hanging'=>0, 'left'=>0, 'lineHeight'=>1, 'color'=>'FFFAE3');
         $this->custom_styles['logoDir'] = __DIR__.'/../src/logo01.png';
         $this->custom_styles['logoAllign'] = array('width' => 300, 'alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER);
+        $this->custom_styles['tocIndent'] = array('indent' => 100);
         //$this->custom_styles[''] = ;
         $this->sort_schwerpunkte_vorgabe = array("Basismodule", "Wahlpflichtmodule");
         $this->name_bachelorMaster = array("Bachelor", "Master");
         $this->name_bachelorMasterSuffix = "-Studiengang"; //nur für Deckblatt
+        $this->name_inhaltsverzeichnis = 'Inhaltsverzeichnis';
+        $this->relevanteModule = array(
+            //alle Module der verschiedenen Prüfungsordnungen und Studiengänge, die relevante Kurse enthalten
+            //ausgeschlossen sind Fremdsprachen, Studium Generale, Seminare des ZKK (siehe Hinweise auf letzter Seite des fertigen Dokuments)
+
+            //Bachelor
+                "Basismodule",
+                "Wahlmodule",
+                "Economics",
+                "Wirtschaftsinformatik",
+                "Accounting, Finance and Taxation",
+                "Management, Innovation, Marketing",
+                "Informatik / Mathematik",
+                "Wahlpflichtmodule",
+                "Seminar aus Wirtschaftsinformatik",
+                "Pflichtmodule",
+                "Wahlmodule BWL/VWL",
+                "Wahlmodule Wirtschaftsinformatik/Informatik",
+                "Schwerpunktnote", //weitere Abstufung notwendig (BWI WS2015)
+            //Master
+                "Methoden",
+                "Accounting, Finance and Taxation", //weitere Abstufung notwendig (MBA Version1)
+                "International Management and Marketing", //weitere Abstufung notwendig (MBA Version1)
+                "Wirtschaftsinformatik / Information Systems", //weitere Abstufung notwendig (MBA Version1)
+                "Modulgruppe A: Core Courses",
+                "Modulgruppe B: Advanced Methods",
+                "Modulgruppe C: Global Economy, International Trade, and Finance",
+                "Modulgruppe D: Governance, Institutions and Development",
+                "Modulgruppe E: Business",
+                "Statistische und theoretische Grundlagen",
+                "Globalization, Geography and the Multinational Firm",
+                "International Finance",
+                "Governance, Institutions and Anticorruption",
+                "Wirtschaftswissenschaftliche Grundlagen",
+                "Wirtschaftsinformatik/ Informations Systems",
+                "Interdisziplinäres Vertiefungsangebot",
+                "Interdisziplinärer Block");
+        $this->relevanteVeranstaltungsTypen = array(
+            //sollten weitere Typen im Modulkatalog gewünscht sein, können diese hier hinzugefügt werden
+            "Vorlesung",
+            "Seminar",
+            "Praktikum"//,
+            //  "Blockveranstaltung"
+        );
     }
 
 
@@ -213,8 +258,8 @@ class SubmitController extends AuthenticatedController {
 
         if ($this->inputArray['auftrag'] === 'modul') { //Modulkatalog erstellen
             /**
-             * Vorbereitungen
-             * ==============
+             * Allgemeine Vorbereitungen
+             * =========================
              */
 
                     //Studiengangsname
@@ -265,7 +310,12 @@ class SubmitController extends AuthenticatedController {
                         }
                         else {} //nur ausgewähltes Semester
 
-
+                    //Dateiname
+                        $file = 'Modulkatalog_';
+                        foreach($zutreffendeSemester as $current_semester) {
+                            $file = $file.$current_semester."_";
+                        }
+                        $file = $file.$this->inputArray['studiengang'];
 
 
 
@@ -329,19 +379,15 @@ class SubmitController extends AuthenticatedController {
 
                 //Inhaltsverzeichnis
                 //==================
-            $tocSection->addTitle('Inhaltsverzeichnis');
+            $tocSection->addTitle($this->name_inhaltsverzeichnis);
             //$tmpStyle123 = array('indentation' => array('left' => 540, 'right' => 120), 'bold' => true);
             //$tocSection->setStyle($tmpStyle123);
-            $toc = $tocSection->addTOC($this->custom_styles['fontStyle11'], array('indent' => 100));
+            $tocSection->addTOC($this->custom_styles['fontStyle11'], $this->custom_styles['tocIndent']);
 
-            $count = 1;
+            //$count = 1;
 
 
-            $file = 'Modulkatalog_';
-            foreach($zutreffendeSemester as $applicableSemester) {
-                $file = $file.$applicableSemester."_";
-            }
-            $file = $file.$this->inputArray['studiengang'];
+
 
             /**
              * Vorgehensweise: Iteration durch den Fakultätsbaum und Abgleich mit den Eingaben (inputArray)
@@ -393,49 +439,9 @@ class SubmitController extends AuthenticatedController {
                 }
             }
 
-            //alle Module der verschiedenen Prüfungsordnungen und Studiengänge, die relevante Kurse enthalten
-            //ausgeschlossen sind Fremdsprachen, Studium Generale, Seminare des ZKK (siehe Hinweise auf letzter Seite des fertigen Dokuments)
-            $relevanteModule = array(
-                //Bachelor
-                "Basismodule",
-                "Wahlmodule",
-                "Economics",
-                "Wirtschaftsinformatik",
-                "Accounting, Finance and Taxation",
-                "Management, Innovation, Marketing",
-                "Informatik / Mathematik",
-                "Wahlpflichtmodule",
-                "Seminar aus Wirtschaftsinformatik",
-                "Pflichtmodule",
-                "Wahlmodule BWL/VWL",
-                "Wahlmodule Wirtschaftsinformatik/Informatik",
-                "Schwerpunktnote", //weitere Abstufung notwendig (BWI WS2015)
-                //Master
-                "Methoden",
-                "Accounting, Finance and Taxation", //weitere Abstufung notwendig (MBA Version1)
-                "International Management and Marketing", //weitere Abstufung notwendig (MBA Version1)
-                "Wirtschaftsinformatik / Information Systems", //weitere Abstufung notwendig (MBA Version1)
-                "Modulgruppe A: Core Courses",
-                "Modulgruppe B: Advanced Methods",
-                "Modulgruppe C: Global Economy, International Trade, and Finance",
-                "Modulgruppe D: Governance, Institutions and Development",
-                "Modulgruppe E: Business",
-                "Statistische und theoretische Grundlagen",
-                "Globalization, Geography and the Multinational Firm",
-                "International Finance",
-                "Governance, Institutions and Anticorruption",
-                "Wirtschaftswissenschaftliche Grundlagen",
-                "Wirtschaftsinformatik/ Informations Systems",
-                "Interdisziplinäres Vertiefungsangebot",
-                "Interdisziplinärer Block");
 
-            //sollten weitere Typen im Modulkatalog gewünscht sein, können diese hier hinzugefügt werden
-            $relevanteVaTypen = array(
-                "Vorlesung",
-                "Seminar",
-                "Praktikum"//,
-            //  "Blockveranstaltung"
-            );
+            $relevanteModule = $this->relevanteModule;
+            $relevanteVaTypen = $this->relevanteVeranstaltungsTypen;
 
             foreach ($module as $m) {
                 if (in_array($m->name, $relevanteModule)) {
@@ -447,20 +453,9 @@ class SubmitController extends AuthenticatedController {
                                 $courses = $n->courses;
                                 foreach ($courses as $cours) {
                                     if (in_array($cours->start_semester->name, $zutreffendeSemester) &&
-                                        //$cours->start_semester->name === $inputArray['semester'] && //nach ausgewähltem Semester filtern
                                         in_array($cours->getSemType()['name'], $relevanteVaTypen) && //nach Vorlesungen und Seminaren filtern
-
-                                        $f->name !== "Studium Generale"){ //Studium Generale nicht anzeigen
-                                        //$headerSection->addText($count .". ".$this->encodeText($cours->name));
-                                        //$mainSection->addTitle($count++ .". ".$this->encodeText($cours->name),2);
-                                        //$table = $mainSection->addTable($tableStyle);
-                                        //$this->addTableToDoc($cours, $table, $f->name);
-                                        //$this->modulUebersicht($cours, $f->name);
-                                        $this->modulEinordnen($cours, $f->name);
-
-                                        //$mainSection->addPageBreak();
-
-
+                                        $f->name !== "Studium Generale") { //Studium Generale nicht anzeigen
+                                            $this->modulEinordnen($cours, $f->name);
                                     }
                                 }
                             }
@@ -476,45 +471,26 @@ class SubmitController extends AuthenticatedController {
                                 $courses = $n->courses;
                                 foreach ($courses as $cours) {
                                     if (in_array($cours->start_semester->name, $zutreffendeSemester) &&
-                                        //$cours->start_semester->name === $inputArray['semester'] && //nach ausgewähltem Semester filtern
                                         in_array($cours->getSemType()['name'], $relevanteVaTypen)){ //nach Vorlesungen und Seminaren filtern
-                                        //$headerSection->addText($count .". ".$this->encodeText($cours->name));
-                                        //$mainSection->addTitle($count++ .". ".$this->encodeText($cours->name), 2);
-                                        //$table = $mainSection->addTable($tableStyle);
-                                        $modName = $m->name . " - " . $f->name;
-                                        //$this->addTableToDoc($cours, $table, $modName);
-                                        //$this->modulUebersicht($cours, $modName);
-                                        $this->modulEinordnen($cours, $modName);
-                                        //$mainSection->addPageBreak();
+                                            $modName = $m->name . " - " . $f->name;
+                                            $this->modulEinordnen($cours, $modName);
                                     }
                                 }
                             }
-
                         }
-
                     }
                     else { //Rest - keine Abstufung
                         foreach ($faecher as $f) {
                             $courses = $f->courses;
                             foreach ($courses as $cours) {
                                 if (in_array($cours->start_semester->name, $zutreffendeSemester) &&
-                                    //$cours->start_semester->name === $inputArray['semester'] && //nach ausgewähltem Semester filtern
-                                    in_array($cours->getSemType()['name'], $relevanteVaTypen)){ //nach Vorlesungen und Seminaren filtern
-                                    //$headerSection->addText($count .". ".$this->encodeText($cours->name));
-                                    //$mainSection->addTitle($count++ .". ".$this->encodeText($cours->name), 2);
-                                    //$table = $mainSection->addTable($tableStyle);
-                                    //$this->addTableToDoc($cours, $table, $m->name);
-                                    //$this->modulUebersicht($cours, $m->name);
-                                    $this->modulEinordnen($cours, $m->name);
-                                    //$mainSection->addPageBreak();
+                                    in_array($cours->getSemType()['name'], $relevanteVaTypen)) { //nach Vorlesungen und Seminaren filtern
+                                        $this->modulEinordnen($cours, $m->name);
                                 }
                             }
                         }
-
                     }
-
                 }
-
             }
             $headerSection->addPageBreak(); //erstellt Seitenumbruch nach der Gliederung
 
