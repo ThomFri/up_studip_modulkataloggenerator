@@ -881,78 +881,146 @@ class SubmitController extends AuthenticatedController {
      * @param $moduleCostomOrder Ordered array of names of Schwerpunkte
      */
     public function modulzuordnungUndKurseOrdnen($moduleCostomOrder, $removeEmpty = true){
-        //echo "test";
-        $tmpModulzuordnungenSource=$this->modulOrdnungsTabelle;
-        $tmpModulzuordnungenTarget=array();
 
-        $currentFreePos=0;
+        //modulOrdnungsTabelle Sortieren
+                $tmpModulzuordnungenSource=$this->modulOrdnungsTabelle;
+                $tmpModulzuordnungenTarget=array();
 
-        // Konfigurierte Schwerpunktreihenfolge einhalten
-        foreach ($moduleCostomOrder as $currentModulePos) {
-            for($i = 0; $i<sizeof($tmpModulzuordnungenSource); $i++){
-                if($tmpModulzuordnungenSource[$i][0] == $currentModulePos) {
-                    $tmpModulzuordnungenTarget[$currentFreePos] = $tmpModulzuordnungenSource[$i];
+                $currentFreePos=0;
+
+                // Konfigurierte Schwerpunktreihenfolge einhalten
+                foreach ($moduleCostomOrder as $currentModulePos) {
+                    for($i = 0; $i<sizeof($tmpModulzuordnungenSource); $i++){
+                        if($tmpModulzuordnungenSource[$i][0] == $currentModulePos) {
+                            $tmpModulzuordnungenTarget[$currentFreePos] = $tmpModulzuordnungenSource[$i];
+                            $currentFreePos = $currentFreePos + 1;
+                            unset($tmpModulzuordnungenSource[$i]); //remove currently re-added module
+                            break;
+                        }
+                    }
+                }
+
+                //sort rest
+                usort($tmpModulzuordnungenSource, function($a, $b) {
+                    return strcmp($a[0], $b[0]);
+                });
+
+                //add rest
+                foreach ($tmpModulzuordnungenSource as $currentLeftModule) {
+                    $tmpModulzuordnungenTarget[$currentFreePos] =  $currentLeftModule;
                     $currentFreePos = $currentFreePos + 1;
-                    unset($tmpModulzuordnungenSource[$i]); //remove currently re-added module
-                    break;
                 }
-            }
-        }
 
-        //sort rest
-        usort($tmpModulzuordnungenSource, function($a, $b) {
-            return strcmp($a[0], $b[0]);
-        });
-
-        //add rest
-        foreach ($tmpModulzuordnungenSource as $currentLeftModule) {
-            $tmpModulzuordnungenTarget[$currentFreePos] =  $currentLeftModule;
-            $currentFreePos = $currentFreePos + 1;
-        }
-
-        //leere Schwerpunkte entfernen
-        if($removeEmpty) {
-            for($i = 0; $i<sizeof($tmpModulzuordnungenTarget); $i++){
-                if(sizeof($tmpModulzuordnungenTarget[$i]) <= 1) { //only title itself is countained!
-                    unset($tmpModulzuordnungenTarget[$i]); //remove Schwerpunkt.
+                //leere Schwerpunkte entfernen
+                if($removeEmpty) {
+                    for($i = 0; $i<sizeof($tmpModulzuordnungenTarget); $i++){
+                        if(sizeof($tmpModulzuordnungenTarget[$i]) <= 1) { //only title itself is countained!
+                            unset($tmpModulzuordnungenTarget[$i]); //remove Schwerpunkt.
+                        }
+                    }
                 }
-            }
-        }
 
-        // Kurse der jeweiligen Schwerpunkte sortieren
-        $sorttype = "name";
-        //$sorttype = "num";
+                // Kurse der jeweiligen Schwerpunkte sortieren
+                $sorttype = "name";
+                //$sorttype = "num";
 
-        for($i = 0; $i<sizeof($tmpModulzuordnungenTarget); $i++){
-            //foreach ($tmpModulzuordnungenTarget as $modulKurse) {
-            $modulKurse = $tmpModulzuordnungenTarget[$i];
-            $tmp = $modulKurse[0];
-            unset($modulKurse[0]);
+                for($i = 0; $i<sizeof($tmpModulzuordnungenTarget); $i++){
+                    //foreach ($tmpModulzuordnungenTarget as $modulKurse) {
+                    $modulKurse = $tmpModulzuordnungenTarget[$i];
+                    $tmp = $modulKurse[0];
+                    unset($modulKurse[0]);
 
-            usort($modulKurse, function($a, $b) use ($sorttype) {
-                if($sorttype == 'name') {
-                    return strcmp($a->name, $b->name);
+                    usort($modulKurse, function($a, $b) use ($sorttype) {
+                        if($sorttype == 'name') {
+                            return strcmp($a->name, $b->name);
+                        }
+                        elseif($sorttype == 'num') {
+                            $a_num = preg_replace("/[^0-9.]/", "", $a->veranstaltungsnummer);
+                            $b_num = preg_replace("/[^0-9.]/", "", $b->veranstaltungsnummer);
+
+                            if ($a_num == $b_num) {
+                                return 0;
+                            }
+                            else {
+                                return ($a_num < $b_num) ? -1 : 1;
+                            }
+                        }
+                    });
+
+                    $modulKurseFertig = array($tmp);
+                    $modulKurseFertig = array_merge($modulKurseFertig, $modulKurse);
+                    $tmpModulzuordnungenTarget[$i] = $modulKurseFertig;
+                    //$kursobjekt->veranstaltungsnummer."\t".$kursobjekt->name
                 }
-                elseif($sorttype == 'num') {
-                    $a_num = preg_replace("/[^0-9.]/", "", $a->veranstaltungsnummer);
-                    $b_num = preg_replace("/[^0-9.]/", "", $b->veranstaltungsnummer);
 
-                    if ($a_num == $b_num) {
-                        return 0;
+                $this->modulOrdnungsTabelle =  $tmpModulzuordnungenTarget;
+
+
+        //modulOrdnungsTabelleSimple Sortieren
+                $tmpModulzuordnungenSimpleSource=$this->modulOrdnungsTabelleSimple;
+                $tmpModulzuordnungenSimpleTarget=array();
+
+
+                //Kurse sortieren
+                usort($tmpModulzuordnungenSimpleSource, function($a, $b) use ($sorttype) {
+                    if($sorttype == 'name') {
+                        return strcmp($a[0]->name, $b[0]->name);
+                    }
+                    elseif($sorttype == 'num') {
+                        $a_num = preg_replace("/[^0-9.]/", "", $a[0]->veranstaltungsnummer);
+                        $b_num = preg_replace("/[^0-9.]/", "", $b[0]->veranstaltungsnummer);
+
+                        if ($a_num == $b_num) {
+                            return 0;
+                        }
+                        else {
+                            return ($a_num < $b_num) ? -1 : 1;
+                        }
+                    }
+                });
+
+                //Schwerpunkte der Kurse sortieren
+                for($i = 0; $i<sizeof($tmpModulzuordnungenSimpleSource); $i++) {
+                    if(sizeof($current_schwerpunkte_source) > 1) {
+                        $current_kurs = $tmpModulzuordnungenSimpleSource[$i][0];
+                        $current_schwerpunkte_source = array_slice($tmpModulzuordnungenSimpleSource[$i], 1);
+                        $current_schwerpunkte_target = array();
+
+                        // Konfigurierte Schwerpunktreihenfolge einhalten
+                        foreach ($moduleCostomOrder as $currentModulePos) {
+                            for ($j = 0; $j < sizeof($current_schwerpunkte_source); $j++) {
+                                if ($current_schwerpunkte_source[$j] == $currentModulePos) {
+                                    $currentFreePos = sizeof($current_schwerpunkte_target);
+                                    $current_schwerpunkte_target[$currentFreePos] = $current_schwerpunkte_source[$j];
+                                    unset($current_schwerpunkte_source[$j]); //remove currently re-added schwerpunkt
+                                    break;
+                                }
+                            }
+
+
+                        }
+
+
+                        //sortiere den Rest
+                        usort($current_schwerpunkte_source, function($a, $b) {
+                            return strcmp($a, $b);
+                        });
+
+
+                            //füge alles zusammen
+                            $current_schwerpunkte_target = array_merge($current_schwerpunkte_target, $current_schwerpunkte_source);
+
+                            $tmpModulzuordnungenSimpleTarget[$i] = array($current_kurs);
+                            $tmpModulzuordnungenSimpleTarget[$i] = array_merge($tmpModulzuordnungenSimpleTarget[$i], $current_schwerpunkte_target);
                     }
                     else {
-                        return ($a_num < $b_num) ? -1 : 1;
+                        //nur kopieren
+                        $tmpModulzuordnungenSimpleTarget[$i] = $tmpModulzuordnungenSimpleSource[$i];
                     }
                 }
-            });
 
-            $modulKurseFertig = array($tmp);
-            $modulKurseFertig = array_merge($modulKurseFertig, $modulKurse);
-            $tmpModulzuordnungenTarget[$i] = $modulKurseFertig;
-            //$kursobjekt->veranstaltungsnummer."\t".$kursobjekt->name
-        }
 
-        $this->modulOrdnungsTabelle =  $tmpModulzuordnungenTarget;
+               $this->modulOrdnungsTabelleSimple =  $tmpModulzuordnungenSimpleTarget;
     }
 
     public function sortViaName($a, $b){
@@ -1031,7 +1099,7 @@ class SubmitController extends AuthenticatedController {
         $result = "";
         for($i = 0; sizeof($this->modulOrdnungsTabelleSimple); $i++) {
             if($this->modulOrdnungsTabelleSimple[$i][0] == $kursobjekt) {
-                $result = implode("\n", array_slice($this->modulOrdnungsTabelleSimple[$i], 1));
+                $result = implode("hallo1234 \n", array_slice($this->modulOrdnungsTabelleSimple[$i], 1));
 
                 break; //increase speed
             }
