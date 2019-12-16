@@ -78,11 +78,14 @@ class SubmitController extends AuthenticatedController {
         $this->custom_styles['logoDir'] = __DIR__.'/../src/logo01.png';
         $this->custom_styles['logoAllign'] = array('width' => 300, 'alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER);
         $this->custom_styles['tocIndent'] = array('indent' => 100);
+        $this->custom_styles['modulzuordnungTabellenStyle'] = array('borderColor' => '000000', 'borderSize' => 4, 'cellMargin' => 40);
         //$this->custom_styles[''] = ;
         $this->sort_schwerpunkte_vorgabe = array("Basismodule", "Wahlpflichtmodule");
         $this->name_bachelorMaster = array("Bachelor", "Master");
         $this->name_bachelorMasterSuffix = "-Studiengang"; //nur für Deckblatt
         $this->name_inhaltsverzeichnis = 'Inhaltsverzeichnis';
+        $this->name_modulzuordnung = "Modulzuordnung";
+        $this->name_hinweise = "Hinweise zu anderen Veranstaltungen";
         $this->relevanteModule = array(
             //alle Module der verschiedenen Prüfungsordnungen und Studiengänge, die relevante Kurse enthalten
             //ausgeschlossen sind Fremdsprachen, Studium Generale, Seminare des ZKK (siehe Hinweise auf letzter Seite des fertigen Dokuments)
@@ -126,6 +129,26 @@ class SubmitController extends AuthenticatedController {
             "Praktikum"//,
             //  "Blockveranstaltung"
         );
+        $this->kursnamen_bereinigung = array(" (Bachelor)", " (Master)");
+        $this->name_pruefungsordnung = "Primäre Prüfungsordnung: ";
+        $this->name_stand = "Stand: ";
+        $this->dateTimeFormat = 'd. F Y'; //für Deckblatt
+        $this->deckblattText1 = "Falls Sie ältere Versionen des Modulkatalogs benötigen, setzen Sie sich bitte mit dem Dekanat der Wirtschaftswissenschaftlichen Fakultät in Verbindung (dekanat.wiwi@uni-passau.de).";
+        $this->deckblattText2 = "Für alle aufgeführten Veranstaltungen des Modulkatalogs gelten die Studien- und Qualifikationsvoraussetzungen gemäß der jeweiligen Prüfungs- und Studienordnung.";
+        $this->hinweisUeberschriften = array(
+            "Schwerpunkt Studium Generale",
+            "Fremdsprachenangebot",
+            "Schlüsselkompetenzen"
+        );
+        $this->hinweisDazugehoerigeTexte = array(
+            //Schwerpunkt Studium Generale
+            "Im Schwerpunkt -Studium Generale- können je nach Kapazität Angebote anderer Fakultäten gewählt werden. Die Angebote entnehmen Sie bitte aus Stud-IP.",
+            //Fremdsprachenangebot
+            "Bei den Wahlmodulen Fremdsprachen / Schlüsselkompetenzen können Sie eine Wirtschaftsfremdsprache aus dem Angebot des Sprachenzentrums der Universität Passau wählen. Das Angebot entnehmen Sie bitte aus dessen Website: http://www.sprachenzentrum.uni-passau.de/fremdsprachenausbildung/ffa/ffa-fuer-wirtschaftswissenschaftler/ Sie wählen Sprachkurse gemäß Ihren (durch Einstufungstest oder Zertifikat festgestellten) Vorkenntnissen. Prüfungsmodul ist das vollständig absolvierte Modul der jeweils höchsten erreichten Stufe. In allen Sprachen wählen Sie ab der Aufbaustufe die Fachsprache Wirtschaft. Englisch kann grundsätzlich erst ab der Aufbaustufe gewählt werden. ",
+            //Schlüsselkompetenzen
+            "Zusätzlich können Sie Veranstaltungen zu Schlüsselkompetenzen aus dem Angebot des Zentrums für Karriere und Kompetenzen wählen. Das Angebot entnehmen Sie bitte aus dessen Website: http://www.uni-passau.de/studium/service-und-beratung/zkk/veranstaltungen/fuer-studierende/"
+         );
+
     }
 
 
@@ -196,6 +219,7 @@ class SubmitController extends AuthenticatedController {
                     "datei" => $datei,
                     "auftrag" => $auftrag,
                     "profUsername" => "",
+                    "entferneBaMe" => Request::get("fo_bamaBereinigen"),
                     "aufteilung" => Request::get("fo_aufteilung"),
                     "sorttype" => Request::get("fo_sort1"),
                     "sprachenkonvertierung" => Request::get("fo_lang1"),
@@ -206,57 +230,7 @@ class SubmitController extends AuthenticatedController {
             }
 
 
-        /**
-         * PhpWord initialisieren
-         * ======================
-         *
-         * Hilfsklasse zum Erstellen der Word-Files
-         * TODO: omPDF wird zur Erzeugung von PDFs verwendet -> für spätere Versionen
-         * TODO: Alternativ -> https://stackoverflow.com/questions/33084148/generate-pdf-from-docx-generated-by-phpword
-         */
 
-        $file = "document";
-        $phpWord = new PhpWord();
-        $phpWord->getCompatibility()->setOoxmlVersion(15); //setzt die Kompatibilität auf Word2013
-        Settings::setOutputEscapingEnabled(true);
-        $phpWord->getSettings()->setHideGrammaticalErrors(true);
-        $phpWord->getSettings()->setHideSpellingErrors(true);
-
-        $options = new Options();
-        $options->setChroot($GLOBALS['TMP_PATH']);
-        $dompdf = new Dompdf($options);
-
-        //Sections
-
-            //Titel des Dokuments ALT: und Gliederung
-                $headerSection = $phpWord->addSection();
-
-                //Table of Contents
-                    $tocSection = $phpWord->addSection(); //Inhaltsverzeichnisse
-
-                    //Fußzeile
-                        $tocFooter = $tocSection->addFooter();
-                        $tocFooter->addPreserveText($this->custom_styles['footertext'], null, $this->custom_styles['allign_center1']);
-
-                //Vor Inhalt, aber nach TOC
-                    $preContentSection = $phpWord->addSection(); //Zuordnungen
-
-            //Inhaltssektion
-                $mainSection = $phpWord->addSection(array('breakType' => 'continuous')); //Inhalt des Dokuments
-
-                //Fußzeile
-                    $mainFooter = $mainSection->addFooter();
-                    $mainFooter->addPreserveText($this->custom_styles['footertext'], null, $this->custom_styles['allign_center1']);
-
-
-
-        //Styles hinzufügen
-            $phpWord->addParagraphStyle($this->custom_styles['modTableTabName'], $this->custom_styles['modTableTabStyle']);
-            $phpWord->addParagraphStyle($this->custom_styles['PlistName'], $this->custom_styles['PlistStyle']);
-            $phpWord->addTitleStyle(0, $this->custom_styles['titleStyle']);
-            $phpWord->addTitleStyle(1, $this->custom_styles['headerStyle'], $this->custom_styles['centerStyle']);
-            $phpWord->addTitleStyle(2, $this->custom_styles['headerStyle'], $this->custom_styles['centerStyle']);
-            $phpWord->addTitleStyle(3, $this->custom_styles['headerStyle'], $this->custom_styles['centerStyle']);
 
 
         if ($this->inputArray['auftrag'] === 'modul') { //Modulkatalog erstellen
@@ -265,60 +239,64 @@ class SubmitController extends AuthenticatedController {
              * =========================
              */
 
-                    //Studiengangsname
-                        $tmp_studiengangName = $this->inputArray['studiengang'];
-                        $tmp_studiengangUntertitel = "";
-                        $tmp_bachelorMaster = ""; //Bachelor oder Master
-                        $bool_bachelorMasterGefunden = false;
+            //Studiengangsname
+            //==================
+            $tmp_studiengangName = $this->inputArray['studiengang'];
+            $tmp_studiengangUntertitel = "";
+            $tmp_bachelorMaster = ""; //Bachelor oder Master
+            $bool_bachelorMasterGefunden = false;
 
-                        foreach($this->name_bachelorMaster as $current_name) {
-                            if(strpos($tmp_studiengangName, $current_name) !== false) {
-                                $bool_bachelorMasterGefunden = true;
-                                $tmp_bachelorMaster = $current_name;
-                                $tmp_studiengangName = str_replace($current_name." ", "", $tmp_studiengangName);
+            foreach($this->name_bachelorMaster as $current_name) {
+                if(strpos($tmp_studiengangName, $current_name) !== false) {
+                    $bool_bachelorMasterGefunden = true;
+                    $tmp_bachelorMaster = $current_name;
+                    $tmp_studiengangName = str_replace($current_name." ", "", $tmp_studiengangName);
 
-                                //Sonderfälle
-                                if($current_name == $this->name_bachelorMaster[0] && $tmp_studiengangName == 'Wirtschaftsinformatik' && $this->inputArray['po'] == 'Version WS 2015'){
-                                    $tmp_studiengangUntertitel = "(Information Systems)";
-                                }
+                    //Sonderfälle
+                    if($current_name == $this->name_bachelorMaster[0] && $tmp_studiengangName == 'Wirtschaftsinformatik' && $this->inputArray['po'] == 'Version WS 2015'){
+                        $tmp_studiengangUntertitel = "(Information Systems)";
+                    }
 
-                                break; //increase speed
-                            }
-                        }
+                    break; //increase speed
+                }
+            }
 
-                    //Name Winter/Sommer
-                        $semesterName = $this->inputArray['semester'];
-                        $semesterName = str_replace("WiSe", "WS", $semesterName);
-                        $semesterName = str_replace("SoSe", "SS", $semesterName);
+            //Name Winter/Sommer
+            //==================
+            $semesterName = $this->inputArray['semester'];
+            $semesterName = str_replace("WiSe", "WS", $semesterName);
+            $semesterName = str_replace("SoSe", "SS", $semesterName);
 
 
-                    //Ganzjahreskatalog?
-                        $zutreffendeSemester = array($this->inputArray['semester']);
-                        if($this->inputArray['fullyear'] === 'on') { //Ganzjahreskatalog
-                            $semesterPrev = "";
-                            if(substr($this->inputArray['semester'],0,4) == "WiSe") {
-                                $tmpNum = substr($this->inputArray['semester'],5,2);
-                                $semesterPrev = "SoSe ".$tmpNum;
-                            }
-                            elseif(substr($this->inputArray['semester'],0,4) == "WiSe") {
-                                $tmpNum = intval(substr($this->inputArray['semester'],5,2))+1;
-                                if(strlen($tmpNum)==1)
-                                {
-                                    $tmpNum = "0".$tmpNum;
-                                }
-                                $semesterPrev = "WiSe ".$tmpNum;
-                            }
+            //Ganzjahreskatalog?
+            //==================
+            $zutreffendeSemester = array($this->inputArray['semester']);
+            if($this->inputArray['fullyear'] === 'on') { //Ganzjahreskatalog
+                $semesterPrev = "";
+                if(substr($this->inputArray['semester'],0,4) == "WiSe") {
+                    $tmpNum = substr($this->inputArray['semester'],5,2);
+                    $semesterPrev = "SoSe ".$tmpNum;
+                }
+                elseif(substr($this->inputArray['semester'],0,4) == "WiSe") {
+                    $tmpNum = intval(substr($this->inputArray['semester'],5,2))+1;
+                    if(strlen($tmpNum)==1)
+                    {
+                        $tmpNum = "0".$tmpNum;
+                    }
+                    $semesterPrev = "WiSe ".$tmpNum;
+                }
 
-                            array_push($zutreffendeSemester, $semesterPrev);
-                        }
-                        else {} //nur ausgewähltes Semester
+                array_push($zutreffendeSemester, $semesterPrev);
+            }
+            else {} //nur ausgewähltes Semester
 
-                    //Dateiname
-                        $file = 'Modulkatalog_';
-                        foreach($zutreffendeSemester as $current_semester) {
-                            $file = $file.$current_semester."_";
-                        }
-                        $file = $file.$this->inputArray['studiengang'];
+            //Dateiname
+            //=========
+            $file = 'Modulkatalog_';
+            foreach($zutreffendeSemester as $current_semester) {
+                $file = $file.$current_semester."_";
+            }
+            $file = $file.$this->inputArray['studiengang'];
 
 
             /**
@@ -386,11 +364,11 @@ class SubmitController extends AuthenticatedController {
                             $nextTreeStep = StudipStudyArea::findByParent($f->id);
                             foreach ($nextTreeStep as $n) {
                                 $courses = $n->courses;
-                                foreach ($courses as $cours) {
-                                    if (in_array($cours->start_semester->name, $zutreffendeSemester) &&
-                                        in_array($cours->getSemType()['name'], $relevanteVaTypen) && //nach Vorlesungen und Seminaren filtern
+                                foreach ($courses as $kursobjekt) {
+                                    if (in_array($kursobjekt->start_semester->name, $zutreffendeSemester) &&
+                                        in_array($kursobjekt->getSemType()['name'], $relevanteVaTypen) && //nach Vorlesungen und Seminaren filtern
                                         $f->name !== "Studium Generale") { //Studium Generale nicht anzeigen
-                                        $this->modulEinordnen($cours, $f->name);
+                                        $this->modulEinordnen($kursobjekt, $f->name);
                                     }
                                 }
                             }
@@ -404,11 +382,11 @@ class SubmitController extends AuthenticatedController {
                             $nextTreeStep = StudipStudyArea::findByParent($f->id);
                             foreach ($nextTreeStep as $n) {
                                 $courses = $n->courses;
-                                foreach ($courses as $cours) {
-                                    if (in_array($cours->start_semester->name, $zutreffendeSemester) &&
-                                        in_array($cours->getSemType()['name'], $relevanteVaTypen)){ //nach Vorlesungen und Seminaren filtern
+                                foreach ($courses as $kursobjekt) {
+                                    if (in_array($kursobjekt->start_semester->name, $zutreffendeSemester) &&
+                                        in_array($kursobjekt->getSemType()['name'], $relevanteVaTypen)){ //nach Vorlesungen und Seminaren filtern
                                         $modName = $m->name . " - " . $f->name;
-                                        $this->modulEinordnen($cours, $modName);
+                                        $this->modulEinordnen($kursobjekt, $modName);
                                     }
                                 }
                             }
@@ -417,10 +395,10 @@ class SubmitController extends AuthenticatedController {
                     else { //Rest - keine Abstufung
                         foreach ($faecher as $f) {
                             $courses = $f->courses;
-                            foreach ($courses as $cours) {
-                                if (in_array($cours->start_semester->name, $zutreffendeSemester) &&
-                                    in_array($cours->getSemType()['name'], $relevanteVaTypen)) { //nach Vorlesungen und Seminaren filtern
-                                    $this->modulEinordnen($cours, $m->name);
+                            foreach ($courses as $kursobjekt) {
+                                if (in_array($kursobjekt->start_semester->name, $zutreffendeSemester) &&
+                                    in_array($kursobjekt->getSemType()['name'], $relevanteVaTypen)) { //nach Vorlesungen und Seminaren filtern
+                                    $this->modulEinordnen($kursobjekt, $m->name);
                                 }
                             }
                         }
@@ -429,6 +407,13 @@ class SubmitController extends AuthenticatedController {
             }
 
 
+            /**
+             * Arrays sortieren, Inhalt etc. vor-aufbereiten
+             * =============================================
+             */
+
+            //Sortieren
+            $this->modulzuordnungUndKurseOrdnen($this->sort_schwerpunkte_vorgabe, $this->inputArray['sorttype']);
 
 
             /**
@@ -436,112 +421,163 @@ class SubmitController extends AuthenticatedController {
              * =======
              */
 
-                //Deckblatt
-                //=========
+                /**
+                 * PhpWord initialisieren
+                 * ======================
+                 *
+                 * Hilfsklasse zum Erstellen der Word-Files
+                 * TODO: omPDF wird zur Erzeugung von PDFs verwendet -> für spätere Versionen
+                 * TODO: Alternativ -> https://stackoverflow.com/questions/33084148/generate-pdf-from-docx-generated-by-phpword
+                 */
 
-                    //$headerSection->addTitle("Modulkatalog für " . $inputArray['studiengang'] .
-                    //    " (" . $inputArray['po'] . ")" . " im " . $inputArray['semester'],0);
-                    //$headerSection->addText("Enthaltene Module:", array('size' => 14, 'underline' => Font::UNDERLINE_SINGLE));
-                    //$headerSection->addText("\t".$inputArray['studiengang'], $this->custom_styles['modTableTabName']);
+                    $phpWord = new PhpWord();
+                    $phpWord->getCompatibility()->setOoxmlVersion(15); //setzt die Kompatibilität auf Word2013
+                    Settings::setOutputEscapingEnabled(true);
+                    $phpWord->getSettings()->setHideGrammaticalErrors(true);
+                    $phpWord->getSettings()->setHideSpellingErrors(true);
+
+                    $options = new Options();
+                    $options->setChroot($GLOBALS['TMP_PATH']);
+                    $dompdf = new Dompdf($options);
+
+                    //Sections
+
+                    //Titel des Dokuments ALT: und Gliederung
+                    $headerSection = $phpWord->addSection();
+
+                    //Table of Contents
+                    $tocSection = $phpWord->addSection(); //Inhaltsverzeichnisse
+
+                        //Fußzeile
+                        $tocFooter = $tocSection->addFooter();
+                        $tocFooter->addPreserveText($this->custom_styles['footertext'], null, $this->custom_styles['allign_center1']);
+
+                    //Vor Inhalt, aber nach TOC
+                    $preContentSection = $phpWord->addSection(); //Zuordnungen
+
+                    //Inhaltssektion
+                    $mainSection = $phpWord->addSection(array('breakType' => 'continuous')); //Inhalt des Dokuments
+
+                        //Fußzeile
+                        $mainFooter = $mainSection->addFooter();
+                        $mainFooter->addPreserveText($this->custom_styles['footertext'], null, $this->custom_styles['allign_center1']);
+
+
+
+                    //Styles hinzufügen
+                    $phpWord->addParagraphStyle($this->custom_styles['modTableTabName'], $this->custom_styles['modTableTabStyle']);
+                    $phpWord->addParagraphStyle($this->custom_styles['PlistName'], $this->custom_styles['PlistStyle']);
+                    $phpWord->addTitleStyle(0, $this->custom_styles['titleStyle']);
+                    $phpWord->addTitleStyle(1, $this->custom_styles['headerStyle'], $this->custom_styles['centerStyle']);
+                    $phpWord->addTitleStyle(2, $this->custom_styles['headerStyle'], $this->custom_styles['centerStyle']);
+                    $phpWord->addTitleStyle(3, $this->custom_styles['headerStyle'], $this->custom_styles['centerStyle']);
+
+
+
+                    /**
+                     * Deckblatt
+                     * =========
+                     */
+
+                    //ALT
+                        //$headerSection->addTitle("Modulkatalog für " . $inputArray['studiengang'] .
+                        //    " (" . $inputArray['po'] . ")" . " im " . $inputArray['semester'],0);
+                        //$headerSection->addText("Enthaltene Module:", array('size' => 14, 'underline' => Font::UNDERLINE_SINGLE));
+                        //$headerSection->addText("\t".$inputArray['studiengang'], $this->custom_styles['modTableTabName']);
 
                     //Logo
-                        $headerSection->addImage($this->custom_styles['logoDir'], $this->custom_styles['logoAllign']);
+                    $headerSection->addImage($this->custom_styles['logoDir'], $this->custom_styles['logoAllign']);
 
                     //Bachelor / Master - Studiengang
-                        if($bool_bachelorMasterGefunden) {
-                            $headerSection->addText($tmp_bachelorMaster.$this->name_bachelorMasterSuffix, $this->custom_styles['styleFrontMatterHeading']);
-                            $headerSection->addText("", $this->custom_styles['styleFrontMatterHeading']);
-                        }
+                    if($bool_bachelorMasterGefunden) {
+                        $headerSection->addText($tmp_bachelorMaster.$this->name_bachelorMasterSuffix, $this->custom_styles['styleFrontMatterHeading']);
+                        $headerSection->addText("", $this->custom_styles['styleFrontMatterHeading']);
+                    }
 
                     //Studiengang XYZ
-                        $headerSection->addText($tmp_studiengangName, $this->custom_styles['styleFrontMatterHeading']);
+                    $headerSection->addText($tmp_studiengangName, $this->custom_styles['styleFrontMatterHeading']);
 
                     //Unteritel des Studiengangs
-                        if($tmp_studiengangUntertitel !== "") {
-                            $headerSection->addText($tmp_studiengangUntertitel, $this->custom_styles['styleFrontMatterHeading']);
-                        }
-                        else {
-                            $headerSection->addText("", $this->custom_styles['styleFrontMatterHeading']);
-                        }
+                    if($tmp_studiengangUntertitel !== "") {
+                        $headerSection->addText($tmp_studiengangUntertitel, $this->custom_styles['styleFrontMatterHeading']);
+                    }
+                    else {
                         $headerSection->addText("", $this->custom_styles['styleFrontMatterHeading']);
+                    }
+                    $headerSection->addText("", $this->custom_styles['styleFrontMatterHeading']);
 
 
                     //Modulkatalog
-                        $headerSection->addText("Modulkatalog", $this->custom_styles['styleFrontMatterHeading']);
-                        $headerSection->addText("", $this->custom_styles['styleFrontMatterHeading']);
+                    $headerSection->addText("Modulkatalog", $this->custom_styles['styleFrontMatterHeading']);
+                    $headerSection->addText("", $this->custom_styles['styleFrontMatterHeading']);
 
                     //Semester
-                        $headerSection->addText($semesterName, $this->custom_styles['styleFrontMatterHeading']);
-                        $headerSection->addText("", $this->custom_styles['styleFrontMatterText']);
+                    $headerSection->addText($semesterName, $this->custom_styles['styleFrontMatterHeading']);
+                    $headerSection->addText("", $this->custom_styles['styleFrontMatterText']);
 
                     //Zusatzangaben
-                        $headerSection->addText("Primäre Prüfungsordnung: ".$this->inputArray['po'], $this->custom_styles['styleFrontMatterText']);
-                        $headerSection->addText("Stand: ".date('d. F Y'), $this->custom_styles['styleFrontMatterText']);
-                        $headerSection->addText("", $this->custom_styles['styleFrontMatterText']);
-                        $headerSection->addText("", $this->custom_styles['styleFrontMatterText']);
+                    $headerSection->addText($this->name_pruefungsordnung.$this->inputArray['po'], $this->custom_styles['styleFrontMatterText']);
+                    $headerSection->addText($this->name_stand.date($this->dateTimeFormat), $this->custom_styles['styleFrontMatterText']);
+                    $headerSection->addText("", $this->custom_styles['styleFrontMatterText']);
+                    $headerSection->addText("", $this->custom_styles['styleFrontMatterText']);
 
                     //Infos
-                        $headerSection->addText("Falls Sie ältere Versionen des Modulkatalogs benötigen, setzen Sie sich bitte mit dem Dekanat der Wirtschaftswissenschaftlichen Fakultät in Verbindung (dekanat.wiwi@uni-passau.de).", $this->custom_styles['styleFrontMatterText']);
-                        $headerSection->addText("", $this->custom_styles['styleFrontMatterText']);
-                        $headerSection->addText("Für alle aufgeführten Veranstaltungen des Modulkatalogs gelten die Studien- und Qualifikationsvoraussetzungen gemäß der jeweiligen Prüfungs- und Studienordnung.", $this->custom_styles['styleFrontMatterText']);
+                    $headerSection->addText($this->deckblattText1,   $this->custom_styles['styleFrontMatterText']);
+                    $headerSection->addText("",                 $this->custom_styles['styleFrontMatterText']);
+                    $headerSection->addText($this->deckblattText2,   $this->custom_styles['styleFrontMatterText']);
+                    $headerSection->addPageBreak(); //erstellt Seitenumbruch nach der Gliederung
+
 
 
                 //Inhaltsverzeichnis
                 //==================
-            $tocSection->addTitle($this->name_inhaltsverzeichnis);
-            //$tmpStyle123 = array('indentation' => array('left' => 540, 'right' => 120), 'bold' => true);
-            //$tocSection->setStyle($tmpStyle123);
-            $tocSection->addTOC($this->custom_styles['fontStyle11'], $this->custom_styles['tocIndent']);
-
-            //$count = 1;
-
-
+                $tocSection->addTitle($this->name_inhaltsverzeichnis);
+                //$tmpStyle123 = array('indentation' => array('left' => 540, 'right' => 120), 'bold' => true);
+                //$tocSection->setStyle($tmpStyle123);
+                $tocSection->addTOC($this->custom_styles['fontStyle11'], $this->custom_styles['tocIndent']);
+                $tocSection->addPageBreak();
+                //$count = 1;
 
 
 
-            $headerSection->addPageBreak(); //erstellt Seitenumbruch nach der Gliederung
+                //Modulzuordnung
+                //==============
+                $preContentSection->addTitle($this->name_modulzuordnung, 1); //array('size' => 14, 'underline' => Font::UNDERLINE_SINGLE));
 
+                //Gehe alle Schwerpunkte und die dazugehörigen Kurse durch
+                foreach ($this->tabSchwerpunktKurse as $current_schwerpunktMitKursen) {
+                    $current_schwerpunkt = $current_schwerpunktMitKursen[0];
+                    $current_kurse       = array_slice($current_schwerpunktMitKursen, 1);
 
-            //Modulzuordnung ins Dokument schreiben
-            $currentSection = $tocSection;
+                    //Schwerpunkt als Überschrift
+                    $preContentSection->addText($current_schwerpunkt, $this->custom_styles['titleStyle'], $this->custom_styles['leftStyle']);
 
-            $currentSection->addPageBreak();
-            $currentSection->addTitle("Modulzuordnung", 1); //array('size' => 14, 'underline' => Font::UNDERLINE_SINGLE));
+                    //Tabelle mit Kursen
+                    $tabKurseZumSchwerpunkt = $preContentSection->addTable($this->custom_styles['modulzuordnungTabellenStyle']);
+                    for ($j = 0; $j < sizeof($current_kurse); $j++) {
+                        $tabKurseZumSchwerpunkt->addRow();
+                        $zeile = $tabKurseZumSchwerpunkt->addCell();
+                        $kursobjekt = $current_kurse[$j];
+                        $kursname = $kursobjekt->name;
 
-            $this->modulzuordnungUndKurseOrdnen($this->sort_schwerpunkte_vorgabe, $this->inputArray['sorttype']);
+                        //bereinige " (Bachelor)", " (Master)" aus Veranstaltungsnamen
+                        if($this->inputArray['entferneBaMe'] == "on") {
+                            foreach ($this->kursnamen_bereinigung as $current_bereinigung) {
+                                $kursname = str_replace($current_bereinigung, "", $kursname);
+                            }
+                        }
 
-
-            foreach ($this->tabSchwerpunktKurse as $modTab) {
-
-                $currentSection->addText($modTab[0], $this->custom_styles['titleStyle'], $this->custom_styles['leftStyle']);
-
-                $modTable = $currentSection->addTable(array(
-                    'borderColor' => '000000',
-                    'borderSize' => 4,
-                    'cellMargin' => 40
-                ));
-
-                for ($j = 1; $j < sizeof($modTab); $j++) {
-                    $modTable->addRow();
-                    $cell = $modTable->addCell();
-                    $cours = $modTab[$j];
-                    $kursname = $cours->name;
-
-                    $removeBAMA = true;
-
-                    if($removeBAMA)
-                        $kursname = str_replace(" (Bachelor)", "", str_replace(" (Master)", "", $kursname));
-
-                    $cell->addText($this->encodeText($cours->veranstaltungsnummer."\t".$kursname));
-                    //$cell->addListItem($this->encodeText($modTab[$j]), ListItem::TYPE_BULLET_FILLED);
+                        $zeile->addText($this->encodeText($kursobjekt->veranstaltungsnummer."\t".$kursname));
+                        //$zeile->addListItem($this->encodeText($modTab[$j]), ListItem::TYPE_BULLET_FILLED);
+                    }
+                    $preContentSection->addTextBreak(); //Seite abschließen
                 }
-
-                $tocSection->addTextBreak();
-            }
-            $tocSection->addPageBreak(); //erstellt Seitenumbruch nach der Modulzuordnung
+                $preContentSection->addPageBreak(); //Seitenumbruch nach der Modulzuordnung
 
 
 
+            //Kursseiten
+            //==========
             if($this->inputArray['aufteilung'] == "schwerpunkt") {
 
                 $mainSection->addTitle("Module nach Zuordnung", 1);
@@ -550,20 +586,20 @@ class SubmitController extends AuthenticatedController {
                 //Module sortiert schreiben
                 $schonGezeigtStattAusgabe = true;
                 for ($i = 0; $i < sizeof($this->tabSchwerpunktKurse); $i++) {//$this->modulOrdnungsTabelle as $modTab) { //Loop über Schwerpunkte
-                    $modTab = $this->tabSchwerpunktKurse[$i];
+                    $current_schwerpunktMitKursen = $this->tabSchwerpunktKurse[$i];
 
                     //Schwerpunktseite schreiben
-                    $this->modulGruppeSchreiben($modTab[0], $mainSection);
+                    $this->modulGruppeSchreiben($current_schwerpunktMitKursen[0], $mainSection);
 
                     //Enthaltene Veranstaltungen schreiben
-                    for ($j = 1; $j < sizeof($modTab); $j++) { //Loop über Veranstaltungen
+                    for ($j = 1; $j < sizeof($current_schwerpunktMitKursen); $j++) { //Loop über Veranstaltungen
                         $nurVerweis = false;
                         $verweisAuf = "";
 
                         if ($schonGezeigtStattAusgabe) {
                             for ($k = 0; $k < $i; $k++) {
                                 for ($l = 1; $l < sizeof($this->tabSchwerpunktKurse[$k]); $l++) {
-                                    if ($this->tabSchwerpunktKurse[$k][$l]->veranstaltungsnummer == $modTab[$j]->veranstaltungsnummer) {
+                                    if ($this->tabSchwerpunktKurse[$k][$l]->veranstaltungsnummer == $current_schwerpunktMitKursen[$j]->veranstaltungsnummer) {
                                         $nurVerweis = true;
                                         $verweisAuf = $this->tabSchwerpunktKurse[$k][0];
                                         break;
@@ -577,7 +613,7 @@ class SubmitController extends AuthenticatedController {
                             }
                         }
 
-                        $this->modulSeiteSchreiben($modTab[$j], $mainSection, $this->custom_styles['tableStyle'], 3, $nurVerweis, $verweisAuf);
+                        $this->modulSeiteSchreiben($current_schwerpunktMitKursen[$j], $mainSection, $this->custom_styles['tableStyle'], 3, $nurVerweis, $verweisAuf);
                     }
 
                 }
@@ -602,15 +638,13 @@ class SubmitController extends AuthenticatedController {
              */
 
             $endSection = $phpWord->addSection(); //Hinweis auf letzter Seite des Dokuments
-            $endSection->addTitle("Hinweise zu anderen Veranstaltungen",1);
-            $endSection->addText("Schwerpunkt Studium Generale", $this->custom_styles['endInfoStyle']);
-            $endSection->addText("Im Schwerpunkt -Studium Generale- können je nach Kapazität Angebote anderer Fakultäten gewählt werden. Die Angebote entnehmen Sie bitte aus Stud-IP.");
-            $endSection->addText("Fremdsprachenangebot", $this->custom_styles['endInfoStyle']);
-            $endSection->addText("Bei den Wahlmodulen Fremdsprachen / Schlüsselkompetenzen können Sie eine Wirtschaftsfremdsprache aus dem Angebot des Sprachenzentrums der Universität Passau wählen. Das Angebot entnehmen Sie bitte aus dessen Website: http://www.sprachenzentrum.uni-passau.de/fremdsprachenausbildung/ffa/ffa-fuer-wirtschaftswissenschaftler/ Sie wählen Sprachkurse gemäß Ihren (durch Einstufungstest oder Zertifikat festgestellten) Vorkenntnissen. Prüfungsmodul ist das vollständig absolvierte Modul der jeweils höchsten erreichten Stufe. In allen Sprachen wählen Sie ab der Aufbaustufe die Fachsprache Wirtschaft. Englisch kann grundsätzlich erst ab der Aufbaustufe gewählt werden. ");
-            $endSection->addText("Schlüsselkompetenzen", $this->custom_styles['endInfoStyle']);
-            $endSection->addText("Zusätzlich können Sie Veranstaltungen zu Schlüsselkompetenzen aus dem Angebot des Zentrums für Karriere und Kompetenzen wählen. Das Angebot entnehmen Sie bitte aus dessen Website: http://www.uni-passau.de/studium/service-und-beratung/zkk/veranstaltungen/fuer-studierende/");
-
-
+            $endSection->addTitle($this->name_hinweise,1);
+            for($i=0; $i<sizeof($this->hinweisUeberschriften) & $i<sizeof($this->hinweisDazugehoerigeTexte); $i++) {
+                //Überschrift des Hinweises
+                $endSection->addText($this->hinweisUeberschriften[$i], $this->custom_styles['endInfoStyle']);
+                //Text des Hinweises
+                $endSection->addText($this->hinweisDazugehoerigeTexte[$i]);
+            }
         }
 
         elseif ($this->inputArray['auftrag'] === 'ects') { //ECTS-Liste erstellen

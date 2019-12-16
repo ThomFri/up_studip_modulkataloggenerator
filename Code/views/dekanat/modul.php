@@ -87,6 +87,13 @@ use Studip\Button;
             </label>
 
             <label>
+                <b>Kursnamen</b>
+                <br>
+                <input name="fo_bamaBereinigen" type="checkbox" checked>
+                Entferne Zusätze wie "(Bachelor)" und "(Master)" aus Veranstaltungsnamen
+            </label>
+
+            <label>
                 <b>Kursgruppierung</b>
                 <br>
                 <input type="radio" name="fo_aufteilung" value="schwerpunkt" checked>
@@ -95,8 +102,6 @@ use Studip\Button;
                 <input type="radio" name="fo_aufteilung" value="alle">
                 Keine Gruppierung (-> einfach alle Kurse auflisten)
             </label>
-
-
 
             <label>
                 <b>Kurssortierung innerhalb Gruppe</b>
@@ -113,6 +118,13 @@ use Studip\Button;
                 <br>
                 <input name="fo_lang1" type="checkbox">
                 Veranstaltungsseite auf englisch ausgeben <i>(-> momentan nur erste Spalte!)</i>
+            </label>
+
+            <label>
+                <b>Umbruch nach</b>
+                <br>
+                <input name="fo_umbruch" type="checkbox">
+                1
             </label>
 
             <label>
