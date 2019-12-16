@@ -199,7 +199,10 @@ class SubmitController extends AuthenticatedController {
                     "aufteilung" => Request::get("fo_aufteilung"),
                     "sorttype" => Request::get("fo_sort1"),
                     "sprachenkonvertierung" => Request::get("fo_lang1"),
-                    "log" => Request::get("fo_log")); //inputArray['log'] = "on" oder ""
+                    "log" => Request::get("fo_log"), //inputArray['log'] = "on" oder ""
+                    "debug" => Request::get("fo_debug")
+                    );
+
             }
 
 
@@ -318,6 +321,112 @@ class SubmitController extends AuthenticatedController {
                         $file = $file.$this->inputArray['studiengang'];
 
 
+            /**
+             * Arrays mit Kursen und Schwerpunkten füllen
+             * ==========================================
+             *
+             * Vorgehensweise: Iteration durch den Fakultätsbaum und Abgleich mit den Eingaben (inputArray)
+             * wird das gesuchte Element gefunden gehen wir ein Schritt in den Baum hinein
+             * das wird so lange gemacht, bis man bei den gesuchten Kursen angelangt ist
+             * Es wird durch folgendes iteriert: (siehe Veranstaltungsbaum im Plugin)
+             * Studiengänge (subjectTree)
+             * Prüfungsordnungsversionen (poTree)
+             * Module (module)
+             * Fächer/Veranstaltungen (faecher)
+             */
+            $instituteTree = StudipStudyArea::findOnebyStudip_object_id(Institute::findOneByName($this->inputArray['fakultaet'])->id);
+
+            $sCnt = 0;
+            $subjectTree = StudipStudyArea::findByParent($instituteTree->id);
+            foreach ($subjectTree as $s) {
+                if ($this->inputArray['studiengang'] === $s->name)
+                    break;
+                $sCnt++;
+            }
+            $tmp = StudipStudyArea::findByParent($subjectTree[$sCnt]->id);
+            $poTree = array();
+            $bool = true;
+            foreach ($tmp as $t) {
+                if ($t->name === "Studien- und Prüfungsordnung") {
+                    $poTree = StudipStudyArea::findByParent($t->id);
+                    $bool = false;
+                }
+            }
+            if ($bool) {
+                $poTree = $tmp;
+            }
+
+            $p = 0;
+            foreach ($poTree as $s) {
+                if ($this->inputArray['po'] === $s->name)
+                    break;
+                $p++;
+            }
+
+            $tmp = StudipStudyArea::findByParent($poTree[$p]->id);
+            $module = array();
+            $studLevel = "";
+            foreach ($tmp as $t) {
+                if ($t->name === "Bachelornote" || $t->name === "Masternote") {
+                    $module = StudipStudyArea::findByParent($t->id);
+                    $studLevel = $t->name;
+                    break;
+                }
+            }
+
+
+            $relevanteModule = $this->relevanteModule;
+            $relevanteVaTypen = $this->relevanteVeranstaltungsTypen;
+
+            foreach ($module as $m) {
+                if (in_array($m->name, $relevanteModule)) {
+                    $faecher = StudipStudyArea::findByParent($m->id);
+                    if ($m->name === "Schwerpunktnote") { //BWI WS2015: Schwerpunkte - Abstufung notwendig
+                        foreach ($faecher as $f) {
+                            $nextTreeStep = StudipStudyArea::findByParent($f->id);
+                            foreach ($nextTreeStep as $n) {
+                                $courses = $n->courses;
+                                foreach ($courses as $cours) {
+                                    if (in_array($cours->start_semester->name, $zutreffendeSemester) &&
+                                        in_array($cours->getSemType()['name'], $relevanteVaTypen) && //nach Vorlesungen und Seminaren filtern
+                                        $f->name !== "Studium Generale") { //Studium Generale nicht anzeigen
+                                        $this->modulEinordnen($cours, $f->name);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    elseif ($studLevel === "Masternote" && (
+                            $m->name === "Accounting, Finance and Taxation" ||
+                            $m->name === "International Management and Marketing" ||
+                            $m->name === "Wirtschaftsinformatik / Information Systems")){ //MBA Version1: Abstufung in Grundlagen und Vertiefung
+                        foreach ($faecher as $f) {
+                            $nextTreeStep = StudipStudyArea::findByParent($f->id);
+                            foreach ($nextTreeStep as $n) {
+                                $courses = $n->courses;
+                                foreach ($courses as $cours) {
+                                    if (in_array($cours->start_semester->name, $zutreffendeSemester) &&
+                                        in_array($cours->getSemType()['name'], $relevanteVaTypen)){ //nach Vorlesungen und Seminaren filtern
+                                        $modName = $m->name . " - " . $f->name;
+                                        $this->modulEinordnen($cours, $modName);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else { //Rest - keine Abstufung
+                        foreach ($faecher as $f) {
+                            $courses = $f->courses;
+                            foreach ($courses as $cours) {
+                                if (in_array($cours->start_semester->name, $zutreffendeSemester) &&
+                                    in_array($cours->getSemType()['name'], $relevanteVaTypen)) { //nach Vorlesungen und Seminaren filtern
+                                    $this->modulEinordnen($cours, $m->name);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
 
 
@@ -389,109 +498,7 @@ class SubmitController extends AuthenticatedController {
 
 
 
-            /**
-             * Vorgehensweise: Iteration durch den Fakultätsbaum und Abgleich mit den Eingaben (inputArray)
-             * wird das gesuchte Element gefunden gehen wir ein Schritt in den Baum hinein
-             * das wird so lange gemacht, bis man bei den gesuchten Kursen angelangt ist
-             * Es wird durch folgendes iteriert: (siehe Veranstaltungsbaum im Plugin)
-             * Studiengänge (subjectTree)
-             * Prüfungsordnungsversionen (poTree)
-             * Module (module)
-             * Fächer/Veranstaltungen (faecher)
-             */
-            $instituteTree = StudipStudyArea::findOnebyStudip_object_id(Institute::findOneByName($this->inputArray['fakultaet'])->id);
 
-            $sCnt = 0;
-            $subjectTree = StudipStudyArea::findByParent($instituteTree->id);
-            foreach ($subjectTree as $s) {
-                if ($this->inputArray['studiengang'] === $s->name)
-                    break;
-                $sCnt++;
-            }
-            $tmp = StudipStudyArea::findByParent($subjectTree[$sCnt]->id);
-            $poTree = array();
-            $bool = true;
-            foreach ($tmp as $t) {
-                if ($t->name === "Studien- und Prüfungsordnung") {
-                    $poTree = StudipStudyArea::findByParent($t->id);
-                    $bool = false;
-                }
-            }
-            if ($bool) {
-                $poTree = $tmp;
-            }
-
-            $p = 0;
-            foreach ($poTree as $s) {
-                if ($this->inputArray['po'] === $s->name)
-                    break;
-                $p++;
-            }
-
-            $tmp = StudipStudyArea::findByParent($poTree[$p]->id);
-            $module = array();
-            $studLevel = "";
-            foreach ($tmp as $t) {
-                if ($t->name === "Bachelornote" || $t->name === "Masternote") {
-                    $module = StudipStudyArea::findByParent($t->id);
-                    $studLevel = $t->name;
-                    break;
-                }
-            }
-
-
-            $relevanteModule = $this->relevanteModule;
-            $relevanteVaTypen = $this->relevanteVeranstaltungsTypen;
-
-            foreach ($module as $m) {
-                if (in_array($m->name, $relevanteModule)) {
-                    $faecher = StudipStudyArea::findByParent($m->id);
-                    if ($m->name === "Schwerpunktnote") { //BWI WS2015: Schwerpunkte - Abstufung notwendig
-                        foreach ($faecher as $f) {
-                            $nextTreeStep = StudipStudyArea::findByParent($f->id);
-                            foreach ($nextTreeStep as $n) {
-                                $courses = $n->courses;
-                                foreach ($courses as $cours) {
-                                    if (in_array($cours->start_semester->name, $zutreffendeSemester) &&
-                                        in_array($cours->getSemType()['name'], $relevanteVaTypen) && //nach Vorlesungen und Seminaren filtern
-                                        $f->name !== "Studium Generale") { //Studium Generale nicht anzeigen
-                                            $this->modulEinordnen($cours, $f->name);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    elseif ($studLevel === "Masternote" && (
-                        $m->name === "Accounting, Finance and Taxation" ||
-                        $m->name === "International Management and Marketing" ||
-                        $m->name === "Wirtschaftsinformatik / Information Systems")){ //MBA Version1: Abstufung in Grundlagen und Vertiefung
-                        foreach ($faecher as $f) {
-                            $nextTreeStep = StudipStudyArea::findByParent($f->id);
-                            foreach ($nextTreeStep as $n) {
-                                $courses = $n->courses;
-                                foreach ($courses as $cours) {
-                                    if (in_array($cours->start_semester->name, $zutreffendeSemester) &&
-                                        in_array($cours->getSemType()['name'], $relevanteVaTypen)){ //nach Vorlesungen und Seminaren filtern
-                                            $modName = $m->name . " - " . $f->name;
-                                            $this->modulEinordnen($cours, $modName);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else { //Rest - keine Abstufung
-                        foreach ($faecher as $f) {
-                            $courses = $f->courses;
-                            foreach ($courses as $cours) {
-                                if (in_array($cours->start_semester->name, $zutreffendeSemester) &&
-                                    in_array($cours->getSemType()['name'], $relevanteVaTypen)) { //nach Vorlesungen und Seminaren filtern
-                                        $this->modulEinordnen($cours, $m->name);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
             $headerSection->addPageBreak(); //erstellt Seitenumbruch nach der Gliederung
 
 
@@ -1336,6 +1343,8 @@ class SubmitController extends AuthenticatedController {
                 $tmp_turnus = $tmp_turnus."\nBitte entnehmen Sie gegebenenfalls die konkrete Dauer aus den weiteren Angaben.";
         }
 
+
+
         //sortierter Inhalt
         $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['unt'].$textSuf, $cours->untertitel,                                                       true);
         $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['vnr'].$textSuf, $cours->veranstaltungsnummer,                                             true);
@@ -1358,7 +1367,10 @@ class SubmitController extends AuthenticatedController {
         $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['anr'].$textSuf, $tmp_anrechenbarkeit,                                                     true);
         $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['son'].$textSuf, $cours->sonstiges,                                                        true);
         //$this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['tei'].$textSuf, $cours->teilnehmer,                                                       true);
-        $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['deb'].$textSuf, $tmp_debug,                                                               true);
+        //debugfeld schreiben?
+        if($this->inputArray['debug'] == "on") {
+            $this->addTextToTable2($table, $textPre . $tabTexts[$tabLang]['deb'] . $textSuf, $tmp_debug, true);
+        }
 
 
         restoreLanguage();

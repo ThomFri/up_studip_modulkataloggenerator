@@ -36,19 +36,6 @@ use Studip\Button;
         </label>
 
         <label>
-            <b>Fakultät</b>
-            <select name="modul_faculty" id="fac-drop" required="required">
-                <option value="Wirtschaftswissenschaftliche Fakultät" selected="selected">Wirtschaftswissenschaftliche Fakultät</option>
-
-                <?php foreach ($institutes as $s) : ?>
-                    <?php if ($s->faculty!==null) : ?>
-                        <option value="<?= $s->name ?>" ><?= htmlReady($s->name) ?></option>
-                    <?php endif ?>
-                <?php endforeach ?>
-            </select>
-        </label>
-
-        <label>
             <b>Studiengang</b>
             <select name="modul_major" id="major-drop" required="required" onchange="onChangeRegulation()">
                 <?php for($i = 0; $i<5; $i++) : ?>
@@ -78,6 +65,19 @@ use Studip\Button;
 
 
             <h2><i>Erweiterte Optionen</i></h2>
+
+            <label>
+                <b>Fakultät</b>
+                <select name="modul_faculty" id="fac-drop" required="required">
+                    <option value="Wirtschaftswissenschaftliche Fakultät" selected="selected">Wirtschaftswissenschaftliche Fakultät</option>
+
+                    <?php foreach ($institutes as $s) : ?>
+                        <?php if ($s->faculty!==null) : ?>
+                            <option value="<?= $s->name ?>" ><?= htmlReady($s->name) ?></option>
+                        <?php endif ?>
+                    <?php endforeach ?>
+                </select>
+            </label>
 
             <label>
                 <b>Semesterauswahl erweitern</b>
@@ -120,6 +120,9 @@ use Studip\Button;
                 <br>
                 <input name="fo_log" type="checkbox">
                 Logdatei ausgeben um einen Überblick über mögliche Fehler oder Unvollständigkeiten zu erhalten
+                <br>
+                <input name="fo_debug" type="checkbox">
+                DEBUG-Felder in Dokument schreiben
             </label>
         </div>
         <br>
