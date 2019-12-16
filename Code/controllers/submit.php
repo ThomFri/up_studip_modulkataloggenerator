@@ -100,7 +100,9 @@ class SubmitController extends AuthenticatedController {
                 "datei" => $datei,
                 "auftrag" => $auftrag,
                 "profUsername" => "",
-                "log" => Request::get("modul_log")); //inputArray['log'] = "on" oder ""
+                "aufteilung" => Request::get("fo_aufteilung"),
+                "sorttype" => Request::get("fo_sort1"),
+                "log" => Request::get("fo_log")); //inputArray['log'] = "on" oder ""
         }
 
         $file = "document";
@@ -462,7 +464,7 @@ class SubmitController extends AuthenticatedController {
             $currentSection->addPageBreak();
             $currentSection->addTitle("Modulzuordnung", 1); //array('size' => 14, 'underline' => Font::UNDERLINE_SINGLE));
 
-            $this->modulzuordnungUndKurseOrdnen($moduleCostomOrder);
+            $this->modulzuordnungUndKurseOrdnen($moduleCostomOrder, $inputArray['sorttype']);
 
 
             foreach ($this->modulOrdnungsTabelle as $modTab) {
@@ -496,43 +498,57 @@ class SubmitController extends AuthenticatedController {
 
 
 
-            $mainSection->addTitle("Module nach Zuordnung",1);
-            $mainSection->addPageBreak();
+            if($inputArray['aufteilung'] == "schwerpunkt") {
 
-            //Module sortiert schreiben
-            $schonGezeigtStattAusgabe = true;
-            for($i = 0; $i<sizeof($this->modulOrdnungsTabelle); $i++) {//$this->modulOrdnungsTabelle as $modTab) { //Loop über Schwerpunkte
-                $modTab = $this->modulOrdnungsTabelle[$i];
+                $mainSection->addTitle("Module nach Zuordnung", 1);
+                $mainSection->addPageBreak();
 
-                //Schwerpunktseite schreiben
-                $this->modulGruppeSchreiben($modTab[0], $mainSection);
+                //Module sortiert schreiben
+                $schonGezeigtStattAusgabe = true;
+                for ($i = 0; $i < sizeof($this->modulOrdnungsTabelle); $i++) {//$this->modulOrdnungsTabelle as $modTab) { //Loop über Schwerpunkte
+                    $modTab = $this->modulOrdnungsTabelle[$i];
 
-                //Enthaltene Veranstaltungen schreiben
-                for ($j = 1; $j < sizeof($modTab); $j++) { //Loop über Veranstaltungen
-                    $nurVerweis = false;
-                    $verweisAuf="";
+                    //Schwerpunktseite schreiben
+                    $this->modulGruppeSchreiben($modTab[0], $mainSection);
 
-                    if($schonGezeigtStattAusgabe) {
-                        for($k = 0; $k < $i; $k++)
-                        {
-                            for($l = 1; $l<sizeof($this->modulOrdnungsTabelle[$k]); $l++) {
-                                if($this->modulOrdnungsTabelle[$k][$l]->veranstaltungsnummer == $modTab[$j]->veranstaltungsnummer){
-                                    $nurVerweis = true;
-                                    $verweisAuf=$this->modulOrdnungsTabelle[$k][0];
+                    //Enthaltene Veranstaltungen schreiben
+                    for ($j = 1; $j < sizeof($modTab); $j++) { //Loop über Veranstaltungen
+                        $nurVerweis = false;
+                        $verweisAuf = "";
+
+                        if ($schonGezeigtStattAusgabe) {
+                            for ($k = 0; $k < $i; $k++) {
+                                for ($l = 1; $l < sizeof($this->modulOrdnungsTabelle[$k]); $l++) {
+                                    if ($this->modulOrdnungsTabelle[$k][$l]->veranstaltungsnummer == $modTab[$j]->veranstaltungsnummer) {
+                                        $nurVerweis = true;
+                                        $verweisAuf = $this->modulOrdnungsTabelle[$k][0];
+                                        break;
+                                    }
+                                }
+
+                                if ($nurVerweis) {
                                     break;
                                 }
-                            }
 
-                            if($nurVerweis){
-                                break;
                             }
-
                         }
+
+                        $this->modulSeiteSchreiben($modTab[$j], $mainSection, $tableStyle, 3, $nurVerweis, $verweisAuf);
                     }
 
-                    $this->modulSeiteSchreiben($modTab[$j], $mainSection, $tableStyle, $nurVerweis, $verweisAuf);
                 }
+            }
+            elseif ($inputArray['aufteilung'] == "alle") {
+                $mainSection->addTitle("Moduledetails", 1);
+                $mainSection->addPageBreak();
 
+                //Module sortiert schreiben
+                for ($i = 0; $i < sizeof($this->modulOrdnungsTabelleSimple); $i++) { //Loop über Kurse
+                    $this->modulSeiteSchreiben($this->modulOrdnungsTabelleSimple[$i][0], $mainSection, $tableStyle, 2,false, null);
+                }
+            }
+            else {
+                //ERROR
             }
 
 
@@ -880,7 +896,7 @@ class SubmitController extends AuthenticatedController {
     /**
      * @param $moduleCostomOrder Ordered array of names of Schwerpunkte
      */
-    public function modulzuordnungUndKurseOrdnen($moduleCostomOrder, $removeEmpty = true){
+    public function modulzuordnungUndKurseOrdnen($moduleCostomOrder, $sorttype, $removeEmpty = true){
 
         //modulOrdnungsTabelle Sortieren
                 $tmpModulzuordnungenSource=$this->modulOrdnungsTabelle;
@@ -921,8 +937,6 @@ class SubmitController extends AuthenticatedController {
                 }
 
                 // Kurse der jeweiligen Schwerpunkte sortieren
-                $sorttype = "name";
-                //$sorttype = "num";
 
                 for($i = 0; $i<sizeof($tmpModulzuordnungenTarget); $i++){
                     //foreach ($tmpModulzuordnungenTarget as $modulKurse) {
@@ -1039,7 +1053,7 @@ class SubmitController extends AuthenticatedController {
 
 
 
-    public function modulSeiteSchreiben($kursobjekt, $section, $tabStyle, $nurVerweis = false, $verweisAuf){
+    public function modulSeiteSchreiben($kursobjekt, $section, $tabStyle, $headindDepth, $nurVerweis = false, $verweisAuf){
         $addVeranstaltungsnummer = true;
         $removeBAMA = true;
         $addPN = false;
@@ -1063,7 +1077,7 @@ class SubmitController extends AuthenticatedController {
             $nameToPrint = $nameToPrint." (siehe ".$verweisAuf.")";
         }
 
-        $section->addTitle($this->encodeText($nameToPrint),3);
+        $section->addTitle($this->encodeText($nameToPrint), $headindDepth);
 
         if($nurVerweis) {
             $section->addText("Bitte entnehmen Sie die Veranstaltungsdetails aus der unter \"".$verweisAuf."\" gezeigten Übersicht.");

@@ -5,6 +5,19 @@ use Studip\Button;
 ?>
 
 
+<script type="text/javascript">
+    <!--
+    function toggle_visibility(id) {
+        var e = document.getElementById(id);
+        if(e.style.display == 'block')
+            e.style.display = 'none';
+        else
+            e.style.display = 'block';
+    }
+    //-->
+</script>
+
+
 
 <h2>Modulkatalog erzeugen</h2>
 <form name="modul_dek" class="default" method="POST" action="<?= $controller->url_for('submit/index')?>" onload="populateRegulation()">
@@ -21,11 +34,7 @@ use Studip\Button;
                 <?php endforeach ?>
             </select>
         </label>
-        <label title="Vorangegangenes Semester mit aufnahmen (ganzjährige Sicht)" >
-            <input name="modul_fullyear" type="checkbox">
-            Jahres-Katalog erstellen (mit obigem + vorangegangenem Semester)
-        </label>
-        <br>
+
         <label>
             <b>Fakultät</b>
             <select name="modul_faculty" id="fac-drop" required="required">
@@ -38,7 +47,7 @@ use Studip\Button;
                 <?php endforeach ?>
             </select>
         </label>
-        <br>
+
         <label>
             <b>Studiengang</b>
             <select name="modul_major" id="major-drop" required="required" onchange="onChangeRegulation()">
@@ -51,7 +60,7 @@ use Studip\Button;
                 <?php endfor ?>
             </select>
         </label>
-        <br>
+
         <label>
             <b>Prüfungsordnung</b>
             <select name="modul_regulation" id="reg-drop" required="required">
@@ -61,19 +70,57 @@ use Studip\Button;
             </select>
         </label>
 
+
         <br>
         <br>
-        <h2><i>Erweiterte Optionen</i></h2>
-        <i>TODO</i>
+        <a href="#" onclick="toggle_visibility('block_fo');">Erweiterte Optionen ein-/ausblenden</a>
+        <div id="block_fo" style="display: none">
+
+
+            <h2><i>Erweiterte Optionen</i></h2>
+
+            <br>
+            <b>Semesterauswahl erweitern</b>
+            <label title="Vorangegangenes Semester mit aufnahmen (ganzjährige Sicht)" >
+                <input name="modul_fullyear" type="checkbox">
+                Jahres-Katalog erstellen (mit obigem + vorangegangenem Semester)
+            </label>
+
+
+            <br>
+            <b>Kursgruppierung</b>
+            <br>
+            <input type="radio" name="fo_aufteilung" value="schwerpunkt" checked>
+            Nach Schwerpunkten
+            <br>
+            <input type="radio" name="fo_aufteilung" value="alle">
+            Keine Gruppierung (Einfach alle Kurse auflisten)
+
+
+
+            <br>
+            <br>
+            <b>Kurssortierung innerhalb Gruppe</b>
+            <br>
+            <input type="radio" name="fo_sort1" value="name" checked>
+            Nach Veranstaltungs<u>name</u>, alphabetisch aufsteigend
+            <br>
+            <input type="radio" name="fo_sort1" value="num">
+            Nach Veranstaltungs<u>nummer</u>, aufsteigend
+
+
+            <br>
+            <br>
+            <b>Log und Debug</b>
+            <label title="Lassen Sie sich eine Logdatei zur Erstellung des Dokuments ausgeben um einen Überblick über mögliche Fehler oder Unvollständigkeiten zu erhalten" >
+                <input name="fo_log" type="checkbox">
+                Logdatei ausgeben
+            </label>
+        </div>
         <br>
         <br>
-        <b>Log und Debug</b>
-        <label title="Lassen Sie sich eine Logdatei zur Erstellung des Dokuments ausgeben um einen Überblick über mögliche Fehler oder Unvollständigkeiten zu erhalten" >
-            <input name="modul_log" type="checkbox">
-            Logdatei ausgeben
-        </label>
-        <br>
-        <br>
+
+
         <footer>
             <?= Studip\Button::createAccept("DOCX generieren", "modul_docx") ?>
             <!--<?= Studip\Button::createAccept("PDF generieren", "modul_pdf") ?>-->
