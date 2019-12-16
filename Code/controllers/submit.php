@@ -23,6 +23,7 @@ include __DIR__.'/../composer/vendor/autoload.php';
 class SubmitController extends AuthenticatedController {
     private $modulOrdnungsTabelle;
     private $modulOrdnungsTabelleSimple;
+    private $inputArray;
 
     /**
      * Aktionen und Einstellungen, werden vor jedem Seitenaufruf aufgerufen
@@ -79,9 +80,9 @@ class SubmitController extends AuthenticatedController {
             Request::submitted("dozent_ects_pdf"))
             $datei = "pdf";
 
-        $inputArray = array();
+        $this->inputArray = array();
         if ($auftrag === "ects") {
-            $inputArray = array(
+            $this->inputArray = array(
                 "semester" => Request::get("ects_semester"),
                 "fakultaet" => Request::get("ects_faculty"),
                 "studiengang" => "",
@@ -91,7 +92,7 @@ class SubmitController extends AuthenticatedController {
                 "profUsername" => $profName,
                 "log" => Request::get("ects_log")); //inputArray['log'] = "on" oder ""
         } elseif ($auftrag === "modul") {
-            $inputArray = array(
+            $this->inputArray = array(
                 "semester" => Request::get("modul_semester"),
                 "fullyear" => Request::get("modul_fullyear"),
                 "fakultaet" => Request::get("modul_faculty"),
@@ -102,6 +103,7 @@ class SubmitController extends AuthenticatedController {
                 "profUsername" => "",
                 "aufteilung" => Request::get("fo_aufteilung"),
                 "sorttype" => Request::get("fo_sort1"),
+                "sprachenkonvertierung" => Request::get("fo_lang1"),
                 "log" => Request::get("fo_log")); //inputArray['log'] = "on" oder ""
         }
 
@@ -157,7 +159,7 @@ class SubmitController extends AuthenticatedController {
         $phpWord->addTitleStyle(3, $headerStyle, $centerStyle);
 
 
-        if ($inputArray['auftrag'] === 'modul') { //Modulkatalog erstellen
+        if ($this->inputArray['auftrag'] === 'modul') { //Modulkatalog erstellen
             /*
              * SETTINGS
              * ========
@@ -177,7 +179,7 @@ class SubmitController extends AuthenticatedController {
                  */
 
 
-                    $courseName = $inputArray['studiengang'];
+                    $courseName = $this->inputArray['studiengang'];
                     $courseNameSub = "";
                     $nameBAMA=array("Bachelor", "Master");
                     $courseLevel=""; //Bachelor oder Master
@@ -190,7 +192,7 @@ class SubmitController extends AuthenticatedController {
                             $courseName = str_replace($name." ", "", $courseName);
 
                             //Sonderfälle
-                            if($name == $nameBAMA[0] && $courseName == 'Wirtschaftsinformatik' && $inputArray['po'] == 'Version WS 2015'){
+                            if($name == $nameBAMA[0] && $courseName == 'Wirtschaftsinformatik' && $this->inputArray['po'] == 'Version WS 2015'){
                                 $courseNameSub = "(Information Systems)";
                             }
 
@@ -198,21 +200,21 @@ class SubmitController extends AuthenticatedController {
                         }
                     }
 
-                    $semesterName = $inputArray['semester'];
+                    $semesterName = $this->inputArray['semester'];
                     $semesterName = str_replace("WiSe", "WS", $semesterName);
                     $semesterName = str_replace("SoSe", "SS", $semesterName);
 
 
                     //Ganzjahreskatalog?
-                    $applicableSemesters = array($inputArray['semester']);
-                    if($inputArray['fullyear'] === 'on') {
+                    $applicableSemesters = array($this->inputArray['semester']);
+                    if($this->inputArray['fullyear'] === 'on') {
                         $semesterPrev = "";
-                        if(substr($inputArray['semester'],0,4) == "WiSe") {
-                            $tmpNum = substr($inputArray['semester'],5,2);
+                        if(substr($this->inputArray['semester'],0,4) == "WiSe") {
+                            $tmpNum = substr($this->inputArray['semester'],5,2);
                             $semesterPrev = "SoSe ".$tmpNum;
                         }
-                        elseif(substr($inputArray['semester'],0,4) == "WiSe") {
-                            $tmpNum = intval(substr($inputArray['semester'],5,2))+1;
+                        elseif(substr($this->inputArray['semester'],0,4) == "WiSe") {
+                            $tmpNum = intval(substr($this->inputArray['semester'],5,2))+1;
                             if(strlen($tmpNum)==1)
                             {
                                 $tmpNum = "0".$tmpNum;
@@ -257,7 +259,7 @@ class SubmitController extends AuthenticatedController {
                     $headerSection->addText($semesterName, $styleFrontMatterHeading);
 
                     $headerSection->addText("", $styleFrontMatterText);
-                    $headerSection->addText("Primäre Prüfungsordnung: ".$inputArray['po'], $styleFrontMatterText);
+                    $headerSection->addText("Primäre Prüfungsordnung: ".$this->inputArray['po'], $styleFrontMatterText);
                     $headerSection->addText("Stand: ".date('d. F Y'), $styleFrontMatterText);
                     $headerSection->addText("", $styleFrontMatterText);
                     $headerSection->addText("", $styleFrontMatterText);
@@ -280,7 +282,7 @@ class SubmitController extends AuthenticatedController {
             foreach($applicableSemesters as $applicableSemester) {
                 $file = $file.$applicableSemester."_";
             }
-            $file = $file.$inputArray['studiengang'];
+            $file = $file.$this->inputArray['studiengang'];
 
             /**
              * Vorgehensweise: Iteration durch den Fakultätsbaum und Abgleich mit den Eingaben (inputArray)
@@ -292,12 +294,12 @@ class SubmitController extends AuthenticatedController {
              * Module (module)
              * Fächer/Veranstaltungen (faecher)
              */
-            $instituteTree = StudipStudyArea::findOnebyStudip_object_id(Institute::findOneByName($inputArray['fakultaet'])->id);
+            $instituteTree = StudipStudyArea::findOnebyStudip_object_id(Institute::findOneByName($this->inputArray['fakultaet'])->id);
 
             $sCnt = 0;
             $subjectTree = StudipStudyArea::findByParent($instituteTree->id);
             foreach ($subjectTree as $s) {
-                if ($inputArray['studiengang'] === $s->name)
+                if ($this->inputArray['studiengang'] === $s->name)
                     break;
                 $sCnt++;
             }
@@ -316,7 +318,7 @@ class SubmitController extends AuthenticatedController {
 
             $p = 0;
             foreach ($poTree as $s) {
-                if ($inputArray['po'] === $s->name)
+                if ($this->inputArray['po'] === $s->name)
                     break;
                 $p++;
             }
@@ -464,7 +466,7 @@ class SubmitController extends AuthenticatedController {
             $currentSection->addPageBreak();
             $currentSection->addTitle("Modulzuordnung", 1); //array('size' => 14, 'underline' => Font::UNDERLINE_SINGLE));
 
-            $this->modulzuordnungUndKurseOrdnen($moduleCostomOrder, $inputArray['sorttype']);
+            $this->modulzuordnungUndKurseOrdnen($moduleCostomOrder, $this->inputArray['sorttype']);
 
 
             foreach ($this->modulOrdnungsTabelle as $modTab) {
@@ -498,7 +500,7 @@ class SubmitController extends AuthenticatedController {
 
 
 
-            if($inputArray['aufteilung'] == "schwerpunkt") {
+            if($this->inputArray['aufteilung'] == "schwerpunkt") {
 
                 $mainSection->addTitle("Module nach Zuordnung", 1);
                 $mainSection->addPageBreak();
@@ -538,7 +540,7 @@ class SubmitController extends AuthenticatedController {
 
                 }
             }
-            elseif ($inputArray['aufteilung'] == "alle") {
+            elseif ($this->inputArray['aufteilung'] == "alle") {
                 $mainSection->addTitle("Moduledetails", 1);
                 $mainSection->addPageBreak();
 
@@ -569,10 +571,10 @@ class SubmitController extends AuthenticatedController {
 
         }
 
-        elseif ($inputArray['auftrag'] === 'ects') { //ECTS-Liste erstellen
-            $user = User::findByUsername($inputArray['profUsername']);
-            $file = 'ECTS-Liste_' . $inputArray['semester'] . '_' .
-                $inputArray['profUsername'];
+        elseif ($this->inputArray['auftrag'] === 'ects') { //ECTS-Liste erstellen
+            $user = User::findByUsername($this->inputArray['profUsername']);
+            $file = 'ECTS-Liste_' . $this->inputArray['semester'] . '_' .
+                $this->inputArray['profUsername'];
             $table = $mainSection->addTable(array(
                 'borderColor' => '000000',
                 'borderSize'  => 4,
@@ -581,7 +583,7 @@ class SubmitController extends AuthenticatedController {
 
             $alleKurse = CourseMember::findByUser($user->id);
 
-            if($inputArray['semester'] === 'all'){ //alle Semester
+            if($this->inputArray['semester'] === 'all'){ //alle Semester
                 $headerSection->addText("ECTS-Liste für " . $user->getFullName() . " (alle Semester)", $headerStyle, $centerStyle);
 
                 $table->addRow();
@@ -600,7 +602,7 @@ class SubmitController extends AuthenticatedController {
             }
             else { //ein bestimmtes Semester
 
-                $headerSection->addText("ECTS-Liste für " . $user->getFullName() . " (" . $inputArray['semester'] . ")", $headerStyle, $centerStyle);
+                $headerSection->addText("ECTS-Liste für " . $user->getFullName() . " (" . $this->inputArray['semester'] . ")", $headerStyle, $centerStyle);
 
                 $table->addRow();
                 $table->addCell()->addText("Name", $titleStyle);
@@ -608,7 +610,7 @@ class SubmitController extends AuthenticatedController {
                 $table->addCell()->addText("ECTS", $titleStyle);
 
                 foreach ($alleKurse as $kurs) {
-                    if ($kurs->course->start_semester->name === $inputArray['semester']) {
+                    if ($kurs->course->start_semester->name === $this->inputArray['semester']) {
                         $table->addRow();
                         $table->addCell()->addText($this->encodeText($kurs->course_name));
                         $table->addCell()->addText($this->encodeText($kurs->course->getSemType()['name']));
@@ -624,7 +626,7 @@ class SubmitController extends AuthenticatedController {
         $zip_ending = '.zip';
 
         //Ausgabe des Dokuments, abhängig von Datei- und Log-Auswahl
-        if ($inputArray['datei'] === 'docx'&&$inputArray['log'] !== 'on') {//DOCX und kein Log
+        if ($this->inputArray['datei'] === 'docx'&&$this->inputArray['log'] !== 'on') {//DOCX und kein Log
             try {
                 $xmlWriter = IOFactory::createWriter($phpWord, 'Word2007');
 
@@ -639,7 +641,7 @@ class SubmitController extends AuthenticatedController {
 
             } catch (\PhpOffice\PhpWord\Exception\Exception $e) {} //wird geworfen, wenn falscher 'name' übergeben wird
         }
-        elseif ($inputArray['datei'] === 'docx'&&$inputArray['log'] === 'on'){//DOCX und Log
+        elseif ($this->inputArray['datei'] === 'docx'&&$this->inputArray['log'] === 'on'){//DOCX und Log
             try {
                 $xmlWriter = IOFactory::createWriter($phpWord, 'Word2007');
                 $xmlWriter->save($GLOBALS['TMP_PATH'].'/'.$file.$docx_ending);
@@ -670,7 +672,7 @@ class SubmitController extends AuthenticatedController {
          * Dieser Part kann für nächste Versionen genutzt werden
          * es muss nur der PDF-Button in den Views aktiv gesetzt werden und das Design des PDFs angepasst werden
          */
-        elseif ($inputArray['datei'] === 'pdf' && $inputArray['log'] !== 'on') {//PDF und kein Log
+        elseif ($this->inputArray['datei'] === 'pdf' && $this->inputArray['log'] !== 'on') {//PDF und kein Log
             try {
                 $xmlWriter = IOFactory::createWriter($phpWord, 'HTML');
 
@@ -685,7 +687,7 @@ class SubmitController extends AuthenticatedController {
             } catch (\PhpOffice\PhpWord\Exception\Exception $e) {
             } //wird geworfen, wenn falscher 'name' übergeben wird
         }
-        elseif ($inputArray['datei'] === 'pdf' && $inputArray['log'] === 'on') {//PDF und Log
+        elseif ($this->inputArray['datei'] === 'pdf' && $this->inputArray['log'] === 'on') {//PDF und Log
             try {
                 $xmlWriter = IOFactory::createWriter($phpWord, 'HTML');
                 $xmlWriter->save($GLOBALS['TMP_PATH'] . '/document' . $html_ending);
@@ -1212,12 +1214,14 @@ class SubmitController extends AuthenticatedController {
         $tmp_schwerpunkt = $this->getSchwerpunkt($cours);
 
         //preprocess data
-        if($this->in_array_substr($cours->untertitel, $englishHints) || $this->in_array_substr($cours->sonstiges, $englishHints)) {
-            $tabLang = "en";
-            //setlocale (LC_ALL, 'en_GB');
-            setTempLanguage(false,"en_GB");
-            //setLocaleEnv("en_GB");
-            $tmp_debug = $tmp_debug." LANG: en/".getUserLanguage(get_userid())."/".get_accepted_languages();
+        if($this->inputArray['sprachenkonvertierung'] == 'on') {
+            if ($this->in_array_substr($cours->untertitel, $englishHints) || $this->in_array_substr($cours->sonstiges, $englishHints)) {
+                $tabLang = "en";
+                //setlocale (LC_ALL, 'en_GB');
+                setTempLanguage(false, "en_GB");
+                //setLocaleEnv("en_GB");
+                $tmp_debug = $tmp_debug . " LANG: en/" . getUserLanguage(get_userid()) . "/" . get_accepted_languages();
+            }
         }
         $tabTexts = array(
             "de" => array(

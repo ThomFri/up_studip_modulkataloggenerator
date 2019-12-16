@@ -79,42 +79,47 @@ use Studip\Button;
 
             <h2><i>Erweiterte Optionen</i></h2>
 
-            <br>
-            <b>Semesterauswahl erweitern</b>
-            <label title="Vorangegangenes Semester mit aufnahmen (ganzjährige Sicht)" >
+            <label>
+                <b>Semesterauswahl erweitern</b>
+                <br>
                 <input name="modul_fullyear" type="checkbox">
-                Jahres-Katalog erstellen (mit obigem + vorangegangenem Semester)
+                Jahres-Katalog erstellen (mit oben ausgewähltem <u>+ vorangegangenem Semester</u>)
+            </label>
+
+            <label>
+                <b>Kursgruppierung</b>
+                <br>
+                <input type="radio" name="fo_aufteilung" value="schwerpunkt" checked>
+                Nach Schwerpunkten
+                <br>
+                <input type="radio" name="fo_aufteilung" value="alle">
+                Keine Gruppierung (-> einfach alle Kurse auflisten)
             </label>
 
 
-            <br>
-            <b>Kursgruppierung</b>
-            <br>
-            <input type="radio" name="fo_aufteilung" value="schwerpunkt" checked>
-            Nach Schwerpunkten
-            <br>
-            <input type="radio" name="fo_aufteilung" value="alle">
-            Keine Gruppierung (Einfach alle Kurse auflisten)
 
+            <label>
+                <b>Kurssortierung innerhalb Gruppe</b>
+                <br>
+                <input type="radio" name="fo_sort1" value="name" checked>
+                Nach Veranstaltungs<u>name</u>, alphabetisch aufsteigend
+                <br>
+                <input type="radio" name="fo_sort1" value="num">
+                Nach Veranstaltungs<u>nummer</u>, aufsteigend
+            </label>
 
+            <label>
+                <b>Veranstaltungen in nicht deutscher Sprache</b>
+                <br>
+                <input name="fo_lang1" type="checkbox">
+                Veranstaltungsseite auf englisch ausgeben <i>(-> momentan nur erste Spalte!)</i>
+            </label>
 
-            <br>
-            <br>
-            <b>Kurssortierung innerhalb Gruppe</b>
-            <br>
-            <input type="radio" name="fo_sort1" value="name" checked>
-            Nach Veranstaltungs<u>name</u>, alphabetisch aufsteigend
-            <br>
-            <input type="radio" name="fo_sort1" value="num">
-            Nach Veranstaltungs<u>nummer</u>, aufsteigend
-
-
-            <br>
-            <br>
-            <b>Log und Debug</b>
-            <label title="Lassen Sie sich eine Logdatei zur Erstellung des Dokuments ausgeben um einen Überblick über mögliche Fehler oder Unvollständigkeiten zu erhalten" >
+            <label>
+                <b>Log und Debug</b>
+                <br>
                 <input name="fo_log" type="checkbox">
-                Logdatei ausgeben
+                Logdatei ausgeben um einen Überblick über mögliche Fehler oder Unvollständigkeiten zu erhalten
             </label>
         </div>
         <br>
