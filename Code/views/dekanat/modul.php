@@ -4,11 +4,13 @@ use Studip\Button;
 
 ?>
 
-<h3>Modulkatalog erzeugen</h3>
+
+
+<h2>Modulkatalog erzeugen</h2>
 <form name="modul_dek" class="default" method="POST" action="<?= $controller->url_for('submit/index')?>" onload="populateRegulation()">
     <section>
         <label>
-            Semester
+            <b>Semester</b>
             <select name="modul_semester" id="sem-drop" required="required">
                 <?php foreach ($semesters as $s) : ?>
                     <?php if ($s->name===$current_semester->name) : ?>
@@ -23,8 +25,9 @@ use Studip\Button;
             <input name="modul_fullyear" type="checkbox">
             Jahres-Katalog erstellen (mit obigem + vorangegangenem Semester)
         </label>
+        <br>
         <label>
-            Fakultät
+            <b>Fakultät</b>
             <select name="modul_faculty" id="fac-drop" required="required">
                 <option value="Wirtschaftswissenschaftliche Fakultät" selected="selected">Wirtschaftswissenschaftliche Fakultät</option>
 
@@ -35,8 +38,9 @@ use Studip\Button;
                 <?php endforeach ?>
             </select>
         </label>
+        <br>
         <label>
-            Studiengang
+            <b>Studiengang</b>
             <select name="modul_major" id="major-drop" required="required" onchange="onChangeRegulation()">
                 <?php for($i = 0; $i<5; $i++) : ?>
                     <?php if ($studysubjects[$i]->name === "Bachelor Business Administration and Economics") : ?>
@@ -47,18 +51,28 @@ use Studip\Button;
                 <?php endfor ?>
             </select>
         </label>
+        <br>
         <label>
-            Prüfungsordnung
+            <b>Prüfungsordnung</b>
             <select name="modul_regulation" id="reg-drop" required="required">
                 <?php foreach ($poBAE as $item) :?>
                     <option value="<?= $item ?>"><?= $item ?></option>
                 <?php endforeach ?>
             </select>
         </label>
+
+        <br>
+        <br>
+        <h2><i>Erweiterte Optionen</i></h2>
+        <i>TODO</i>
+        <br>
+        <br>
+        <b>Log und Debug</b>
         <label title="Lassen Sie sich eine Logdatei zur Erstellung des Dokuments ausgeben um einen Überblick über mögliche Fehler oder Unvollständigkeiten zu erhalten" >
-            Logdatei ausgeben
             <input name="modul_log" type="checkbox">
+            Logdatei ausgeben
         </label>
+        <br>
         <br>
         <footer>
             <?= Studip\Button::createAccept("DOCX generieren", "modul_docx") ?>

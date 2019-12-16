@@ -22,6 +22,7 @@ include __DIR__.'/../composer/vendor/autoload.php';
  */
 class SubmitController extends AuthenticatedController {
     private $modulOrdnungsTabelle;
+    private $modulOrdnungsTabelleSimple;
 
     /**
      * Aktionen und Einstellungen, werden vor jedem Seitenaufruf aufgerufen
@@ -35,6 +36,7 @@ class SubmitController extends AuthenticatedController {
 
         $this->modulTabelle = array();
         $this->modulOrdnungsTabelle = array();
+        $this->modulOrdnungsTabelleSimple = array();
         $this->kurse = array();
     }
 
@@ -528,7 +530,7 @@ class SubmitController extends AuthenticatedController {
                         }
                     }
 
-                    $this->modulSeiteSchreiben($modTab[$j], $modTab[0], $mainSection, $tableStyle, $nurVerweis, $verweisAuf);
+                    $this->modulSeiteSchreiben($modTab[$j], $mainSection, $tableStyle, $nurVerweis, $verweisAuf);
                 }
 
             }
@@ -848,6 +850,34 @@ class SubmitController extends AuthenticatedController {
     }
 
     /**
+     * Befüllt die Tabelle in der die Kurse mit ihren zugehörigen Schwerpubkten gespeichert sind
+     * @param $kursobjekt Course Kursobjekt
+     * @param $modulzuordnung String Modulzuordnung
+     */
+    public function modulOrdnungSimple($kursobjekt, $modulzuordnung){
+        $bool = true; //isNew
+
+        for ($i = 0; $i<sizeof($this->modulOrdnungsTabelleSimple); $i++){
+            if($this->modulOrdnungsTabelleSimple[$i][0] == $kursobjekt) {
+//                for($j = 1; $j<sizeof($this->modulOrdnungsTabelleSimple[$i]); $j++){
+//
+//                }
+                //Kurs ist bereits in Array -> Nur Schwerpunkt hinzufügen.
+                $bool = false;
+                array_push($this->modulOrdnungsTabelleSimple[$i], $modulzuordnung);
+
+                break; //increase speed
+            }
+        }
+
+        //Neuen Kurs mit Schwerpunkt hinzufügen
+        if($bool) {
+            $nextFreeIndex = sizeof($this->modulOrdnungsTabelleSimple);
+            $this->modulOrdnungsTabelleSimple[$nextFreeIndex] = array($kursobjekt, $modulzuordnung);
+        }
+    }
+
+    /**
      * @param $moduleCostomOrder Ordered array of names of Schwerpunkte
      */
     public function modulzuordnungUndKurseOrdnen($moduleCostomOrder, $removeEmpty = true){
@@ -934,13 +964,14 @@ class SubmitController extends AuthenticatedController {
     }
 
     public function modulEinordnen($kursobjekt, $modulzuordnung){
-        $this->modulUebersicht($kursobjekt,$modulzuordnung);
-        $this->modulOrdnung($kursobjekt,$modulzuordnung);
+        $this->modulUebersicht($kursobjekt, $modulzuordnung);
+        $this->modulOrdnung($kursobjekt, $modulzuordnung);
+        $this->modulOrdnungSimple($kursobjekt,$modulzuordnung);
     }
 
 
 
-    public function modulSeiteSchreiben($kursobjekt, $modulzuordnung, $section, $tabStyle, $nurVerweis = false, $verweisAuf){
+    public function modulSeiteSchreiben($kursobjekt, $section, $tabStyle, $nurVerweis = false, $verweisAuf){
         $addVeranstaltungsnummer = true;
         $removeBAMA = true;
         $addPN = false;
@@ -971,7 +1002,7 @@ class SubmitController extends AuthenticatedController {
         }
         else {
             $table = $section->addTable($tabStyle);
-            $this->addTableToDoc($kursobjekt, $table, $modulzuordnung);
+            $this->addTableToDoc($kursobjekt, $table);
         }
 
         $section->addPageBreak();
@@ -992,6 +1023,19 @@ class SubmitController extends AuthenticatedController {
     public function getPN($cours) {
         $studyareastring = $cours->study_areas->first()->name;
         $result = substr($studyareastring, 0, strpos($studyareastring, " | "));
+
+        return $result;
+    }
+
+    public function getSchwerpunkt($kursobjekt) {
+        $result = "";
+        for($i = 0; sizeof($this->modulOrdnungsTabelleSimple); $i++) {
+            if($this->modulOrdnungsTabelleSimple[$i][0] == $kursobjekt) {
+                $result = implode("\n", array_slice($this->modulOrdnungsTabelleSimple[$i], 1));
+
+                break; //increase speed
+            }
+        }
 
         return $result;
     }
@@ -1046,7 +1090,7 @@ class SubmitController extends AuthenticatedController {
      * @param $table Table Tabellenobjekt, in welches geschrieben wird
      * @param $modul String Modulzuordnung
      */
-    public function addTableToDoc($cours, $table, $modul)
+    public function addTableToDoc($cours, $table)
     {
         $tmp_debug ="";
         $tabLang = "de";
@@ -1082,6 +1126,8 @@ class SubmitController extends AuthenticatedController {
         }
 
         $tmp_pn = $this->getPN($cours);
+
+        $tmp_schwerpunkt = $this->getSchwerpunkt($cours);
 
         //preprocess data
         if($this->in_array_substr($cours->untertitel, $englishHints) || $this->in_array_substr($cours->sonstiges, $englishHints)) {
@@ -1173,7 +1219,7 @@ class SubmitController extends AuthenticatedController {
         $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['unt'].$textSuf, $cours->untertitel,                                                       true);
         $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['vnr'].$textSuf, $cours->veranstaltungsnummer,                                             true);
         $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['typ'].$textSuf, $cours->getSemType()['name'],                                             true);
-        $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['mod'].$textSuf, $modul,                                                                   true);
+        $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['mod'].$textSuf, $tmp_schwerpunkt,                                                         true);
         $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['doz'].$textSuf, $this->dozenten($cours),                                                  true);
         $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['ein'].$textSuf, Institute::find($cours->institut_id)->name,                               true);
         $this->addTextToTable2($table, $textPre.$tabTexts[$tabLang]['art'].$textSuf, $cours->art,                                                              true);
