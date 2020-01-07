@@ -224,6 +224,9 @@ class SubmitController extends AuthenticatedController {
                     "entferneBaMe" => Request::get("fo_bamaBereinigen"),
                     "verweisStattAusgabe" => Request::get("fo_veranstaltungsVerweis"),
                     "verweisStattAusgabeTOC" => Request::get("fo_veranstaltungsVerweisTOC"),
+                    "umbruch_zuordnungsTab" => Request::get("fo_umbruch_modulzuordnungstabellen"),
+                    "umbruch_moduleNachZuordnung" => Request::get("fo_umbruch_moduleNachZuordnung"),
+                    "umbruch_schwerpunktGruppe" => Request::get("fo_umbruch_schwerpunktGruppe"),
                     "aufteilung" => Request::get("fo_aufteilung"),
                     "sorttype" => Request::get("fo_sort1"),
                     "sprachenkonvertierung" => Request::get("fo_lang1"),
@@ -434,6 +437,8 @@ class SubmitController extends AuthenticatedController {
                  * TODO: Alternativ -> https://stackoverflow.com/questions/33084148/generate-pdf-from-docx-generated-by-phpword
                  */
 
+
+                    //phpWord einstellen
                     $phpWord = new PhpWord();
                     $phpWord->getCompatibility()->setOoxmlVersion(15); //setzt die Kompatibilität auf Word2013
                     Settings::setOutputEscapingEnabled(true);
@@ -501,7 +506,7 @@ class SubmitController extends AuthenticatedController {
                     //Studiengang XYZ
                     $headerSection->addText($tmp_studiengangName, $this->custom_styles['styleFrontMatterHeading']);
 
-                    //Unteritel des Studiengangs
+                    //Untertitel des Studiengangs
                     if($tmp_studiengangUntertitel !== "") {
                         $headerSection->addText($tmp_studiengangUntertitel, $this->custom_styles['styleFrontMatterHeading']);
                     }
@@ -544,39 +549,46 @@ class SubmitController extends AuthenticatedController {
 
 
 
-                //Modulzuordnung
-                //==============
+                //Modulzuordnung(stabelle)
+                //========================
                 $preContentSection->addTitle($this->name_modulzuordnung, 1); //array('size' => 14, 'underline' => Font::UNDERLINE_SINGLE));
 
                 //Gehe alle Schwerpunkte und die dazugehörigen Kurse durch
-                foreach ($this->tabSchwerpunktKurse as $current_schwerpunktMitKursen) {
-                    $current_schwerpunkt = $current_schwerpunktMitKursen[0];
-                    $current_kurse       = array_slice($current_schwerpunktMitKursen, 1);
+                foreach ($this->tabSchwerpunktKurse as $current_schwerpunktMitKursen) { //Loop über Schwerpunkte
+                    $current_schwerpunkt = $current_schwerpunktMitKursen[0]; //der Schwerpunktname
+                    $current_kurse       = array_slice($current_schwerpunktMitKursen, 1); //Kurse innerhalb des Schwerpunkts
 
                     //Schwerpunkt als Überschrift
                     $preContentSection->addText($current_schwerpunkt, $this->custom_styles['titleStyle'], $this->custom_styles['leftStyle']);
 
                     //Tabelle mit Kursen
-                    $tabKurseZumSchwerpunkt = $preContentSection->addTable($this->custom_styles['modulzuordnungTabellenStyle']);
-                    for ($j = 0; $j < sizeof($current_kurse); $j++) {
-                        $tabKurseZumSchwerpunkt->addRow();
-                        $zeile = $tabKurseZumSchwerpunkt->addCell();
-                        $kursobjekt = $current_kurse[$j];
-                        $kursname = $kursobjekt->name;
+                    $tabKurseZumSchwerpunkt = $preContentSection->addTable($this->custom_styles['modulzuordnungTabellenStyle']); //die Tabelle
 
-                        //bereinige " (Bachelor)", " (Master)" aus Veranstaltungsnamen
+                    for ($j = 0; $j < sizeof($current_kurse); $j++) { //Loop über einzelne Kurse
+                        $tabKurseZumSchwerpunkt->addRow(); //neue Zeile
+                        $zelle = $tabKurseZumSchwerpunkt->addCell(); //neue Zelle
+                        $kursobjekt = $current_kurse[$j]; //der Kurs
+                        $kursname = $kursobjekt->name; //Kursname
+                        $kursnummer = $kursobjekt->veranstaltungsnummer;
+
+                        //bereinige " (Bachelor)", " (Master)" aus Veranstaltungsnamen?
                         if($this->inputArray['entferneBaMe'] == "on") {
                             foreach ($this->kursnamen_bereinigung as $current_bereinigung) {
                                 $kursname = str_replace($current_bereinigung, "", $kursname);
                             }
                         }
 
-                        $zeile->addText($this->encodeText($kursobjekt->veranstaltungsnummer."\t".$kursname));
+                        $zelle->addText($this->encodeText($kursnummer."\t".$kursname)); //Kursnummer und Kursname in Zelle schreiben
                         //$zeile->addListItem($this->encodeText($modTab[$j]), ListItem::TYPE_BULLET_FILLED);
                     }
                     $preContentSection->addTextBreak(); //Seite abschließen
                 }
-                $preContentSection->addPageBreak(); //Seitenumbruch nach der Modulzuordnung
+
+                //Seitenumbruch nach der Modulzuordnung?
+                if($this->inputArray['umbruch_zuordnungsTab'] == "on") {
+                    $preContentSection->addPageBreak();
+                }
+
 
 
 
@@ -588,15 +600,19 @@ class SubmitController extends AuthenticatedController {
 
                 //Überschrift
                 $mainSection->addTitle($this->name_moduleNachZuordnung, 1);
-                $mainSection->addPageBreak();
+                //Seitenumbruch?
+                if($this->inputArray['umbruch_moduleNachZuordnung'] == "on") {
+                    $mainSection->addPageBreak();
+                }
 
                 //Veranstaltungen sortiert schreiben
                 for ($i = 0; $i < sizeof($this->tabSchwerpunktKurse); $i++) {//$this->modulOrdnungsTabelle as $modTab) { //Loop über Schwerpunkte
                     $current_schwerpunktMitKursen = $this->tabSchwerpunktKurse[$i];
-                    $current_schwerpunkt = $current_schwerpunktMitKursen[0];
+                    $current_schwerpunkt = $current_schwerpunktMitKursen[0]; //Der Schwerpunkt
+                    $current_kurse = array_slice($current_schwerpunktMitKursen, 1); //Kurse innerhalb des Schwerpunkts
 
                     //Schwerpunktseite schreiben
-                    $this->modulGruppeSchreiben($current_schwerpunkt, $mainSection);
+                    $this->schwerpunktGruppeSchreiben($current_schwerpunkt, $mainSection);
 
                     //Enthaltene Veranstaltungen schreiben bzw. über diese loopen
                     for ($j = 1; $j < sizeof($current_schwerpunktMitKursen); $j++) { //Loop über Veranstaltungen
@@ -1155,7 +1171,7 @@ class SubmitController extends AuthenticatedController {
         $nameToPrint = $nameToPrint.$kursname;
 
         if($addPN)
-            $nameToPrint = $nameToPrint." (PN: ".$this->getPN($kursobjekt).")";
+            $nameToPrint = $nameToPrint." (PN: ".$this->getPruefungsnummer($kursobjekt).")";
 
         if($nurVerweis) {
             $nameToPrint = $nameToPrint." (siehe ".$verweisAuf.")";
@@ -1174,25 +1190,43 @@ class SubmitController extends AuthenticatedController {
         $section->addPageBreak();
     }
 
-    public function modulGruppeSchreiben($modulzuordnung, $section) {
-        $section->addTitle($this->encodeText($modulzuordnung),2);
-        $section->addPageBreak();
+    /**
+     * Schreibt die Seite / den Titel des Schwerpunkts
+     * @param $schwerpunkt string Zu schreibender Schwerpunkt(name)
+     * @param $section \PhpOffice\PhpWord\Style\Section Sektion in die eingefügt / an die angehängt wird
+     */
+    public function schwerpunktGruppeSchreiben($schwerpunkt, $section) {
+        $section->addTitle($this->encodeText($schwerpunkt),2); //Titel (Name des Schwerpunkts) schreiben
+
+        //Umbruch?
+        if($this->inputArray['umbruch_schwerpunktGruppe'] == "on") {
+            $section->addPageBreak();
+        }
+
     }
-
-
 
 
     public function moduleSortiertDrucken(){
 
     }
 
-    public function getPN($cours) {
-        $studyareastring = $cours->study_areas->first()->name;
+    /**
+     * Gibt die Prüfungsnummer eines Kurses zurück
+     * @param $kursobjekt Course
+     * @return false|string Prüfungsnummer des Kurses
+     */
+    public function getPruefungsnummer($kursobjekt) {
+        $studyareastring = $kursobjekt->study_areas->first()->name;
         $result = substr($studyareastring, 0, strpos($studyareastring, " | "));
 
         return $result;
     }
 
+    /**
+     * Gibt die Schwerpunkte eines Kurses als zusammengesetzten String zurück
+     * @param $kursobjekt Course Der Kurs
+     * @return string Konkatenierter String der Schwerpunkte des Kurses
+     */
     public function getSchwerpunkt($kursobjekt) {
         $result = "";
 
@@ -1205,12 +1239,28 @@ class SubmitController extends AuthenticatedController {
         return $result;
     }
 
+
     //https://akrabat.com/substr_in_array/
+
+    /**
+     * Gibt an, ob Item (String) einen Hint (mehrere Hints im Array; erstes Vorkommen) enthält
+     * @param $item string Objekt das auf Hints geprüft werden soll
+     * @param array $hintArray array Array von Hints
+     * @param bool $lowercase bool Nur Lowercase-Vergleich (true) oder Captial-Sensitive (false)
+     * @return false|int True wenn einer der Hints enthalten oder falsch wenn keiner der Hints enthalten.
+     */
     public function in_array_substr($item, array $hintArray, $lowercase=true)
     {
         return ($this->in_array_strpos($item, $hintArray, $lowercase) != -1);
     }
 
+    /**
+     * Gibt an, ob bzw. an welcher Position eines Items (String) ein Hint (mehrere Hints im Array; erstes Vorkommen) enthalten ist
+     * @param $item string Objekt das auf Hints geprüft werden soll
+     * @param array $hintArray array Array von Hints
+     * @param bool $lowercase bool Nur Lowercase-Vergleich (true) oder Captial-Sensitive (false)
+     * @return false|int Position eines Hints oder falsch wenn keiner der Hints enthalten.
+     */
     public function in_array_strpos($item, array $hintArray, $lowercase=true)
     {
         if($lowercase) {
@@ -1230,6 +1280,13 @@ class SubmitController extends AuthenticatedController {
         return -1;
     }
 
+    /**
+     * Gibt an, ob Item (String) mit einem Hint (mehrere Hints im Array; erstes Vorkommen) BEGINNT
+     * @param $item string Objekt das auf Hints geprüft werden soll
+     * @param array $hintArray array Array von Hints
+     * @param bool $lowercase bool Nur Lowercase-Vergleich (true) oder Captial-Sensitive (false)
+     * @return false|int Item beginnt mit einem der Hints oder falsch wenn nicht.
+     */
     public function in_array_strposZero($item, array $hintArray, $lowercase=true)
     {
         if($lowercase) {
@@ -1290,7 +1347,7 @@ class SubmitController extends AuthenticatedController {
             }
         }
 
-        $tmp_pn = $this->getPN($cours);
+        $tmp_pn = $this->getPruefungsnummer($cours);
 
         $tmp_schwerpunkt = $this->getSchwerpunkt($cours);
 

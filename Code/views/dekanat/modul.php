@@ -132,8 +132,14 @@ use Studip\Button;
             <label>
                 <b>Umbruch nach</b>
                 <br>
-                <input name="fo_umbruch" type="checkbox">
-                1
+                <input name="fo_umbruch_modulzuordnungstabellen" type="checkbox" checked>
+                Modulzuordnungstabellen
+                <br>
+                <input name="fo_umbruch_moduleNachZuordnung" type="checkbox" checked>
+                Überschrift: "Module nach Zuordnung" <i>(falls oben Gruppierung nach Schwerpunkten gewählt)</i>
+                <br>
+                <input name="fo_umbruch_schwerpunktGruppe" type="checkbox" checked>
+                Schwerpunktgruppe <i>(falls oben Gruppierung nach Schwerpunkten gewählt)</i>
             </label>
 
             <label>
