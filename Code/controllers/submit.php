@@ -153,6 +153,12 @@ class SubmitController extends AuthenticatedController {
          );
 
         $this->englishHints = array("(ENGLISCH)", "Course language is English.");
+        $this->kursDetailsTitelPruefungsnummerPrefix =" (PN: ";
+        $this->kursDetailsTitelPruefungsnummerSuffix =")";
+        $this->kursDetailsTitelVerweisPrefix =" (siehe ";
+        $this->kursDetailsTitelVerweisSuffix =")";
+        $this->kursDetailsVerweisTextPrefix ="Bitte entnehmen Sie die Veranstaltungsdetails aus der unter \"";
+        $this->kursDetailsVerweisTextSuffix ="\" gezeigten Übersicht.";
         $this->kursDetailsTabellenZeilenNamen = array(
             //deutsche Bezeichnungen
             "de" => array(
@@ -205,6 +211,8 @@ class SubmitController extends AuthenticatedController {
                 'deb' => 'DEBUG:'
             ),
         );
+        $this->kursDetailsTabellenZeilenInhaltPrefix = "";
+        $this->kursDetailsTabellenZeilenInhaltSuffix = "";
 
 
         $this->gaengigeTurnusNamen = array(
@@ -296,9 +304,14 @@ class SubmitController extends AuthenticatedController {
                     "entferneBaMe" => Request::get("fo_bamaBereinigen"),
                     "verweisStattAusgabe" => Request::get("fo_veranstaltungsVerweis"),
                     "verweisStattAusgabeTOC" => Request::get("fo_veranstaltungsVerweisTOC"),
+                    "kursseiteVeranstaltungsnummer" => Request::get("fo_kursseiteVeranstaltungsnummer"),
+                    "kursseitePruefungsnummer" => Request::get("fo_kursseitePruefungsnummer"),
+                    "umbruch_TOC" => Request::get("fo_umbruch_TOC"),
+                    "umbruch_deckblatt" => Request::get("fo_umbruch_deckblatt"),
                     "umbruch_zuordnungsTab" => Request::get("fo_umbruch_modulzuordnungstabellen"),
                     "umbruch_moduleNachZuordnung" => Request::get("fo_umbruch_moduleNachZuordnung"),
                     "umbruch_schwerpunktGruppe" => Request::get("fo_umbruch_schwerpunktGruppe"),
+                    "umbruch_kursseite" => Request::get("fo_umbruch_kursseite"),
                     "aufteilung" => Request::get("fo_aufteilung"),
                     "sorttype" => Request::get("fo_sort1"),
                     "sprachenkonvertierung" => Request::get("fo_lang1"),
@@ -606,8 +619,10 @@ class SubmitController extends AuthenticatedController {
                     $headerSection->addText($this->deckblattText1,   $this->custom_styles['styleFrontMatterText']);
                     $headerSection->addText("",                 $this->custom_styles['styleFrontMatterText']);
                     $headerSection->addText($this->deckblattText2,   $this->custom_styles['styleFrontMatterText']);
-                    $headerSection->addPageBreak(); //erstellt Seitenumbruch nach der Gliederung
 
+                    if($this->inputArray['umbruch_deckblatt'] == "on") {
+                        $headerSection->addPageBreak(); //Seitenumbruch nach Deckblatt?
+                    }
 
 
                 //Inhaltsverzeichnis
@@ -616,7 +631,11 @@ class SubmitController extends AuthenticatedController {
                 //$tmpStyle123 = array('indentation' => array('left' => 540, 'right' => 120), 'bold' => true);
                 //$tocSection->setStyle($tmpStyle123);
                 $tocSection->addTOC($this->custom_styles['fontStyle11'], $this->custom_styles['tocIndent']);
-                $tocSection->addPageBreak();
+
+                //Seitenumbruch nach Inhaltsverzeichnis?
+                if($this->inputArray['umbruch_TOC'] == "on") {
+                    $tocSection->addPageBreak();
+                }
                 //$count = 1;
 
 
@@ -645,9 +664,7 @@ class SubmitController extends AuthenticatedController {
 
                         //bereinige " (Bachelor)", " (Master)" aus Veranstaltungsnamen?
                         if($this->inputArray['entferneBaMe'] == "on") {
-                            foreach ($this->kursnamen_bereinigung as $current_bereinigung) {
-                                $kursname = str_replace($current_bereinigung, "", $kursname);
-                            }
+                            $kursname = $this->removeFrom($kursname, $this->kursnamen_bereinigung);
                         }
 
                         $zelle->addText($this->encodeText($kursnummer."\t".$kursname)); //Kursnummer und Kursname in Zelle schreiben
@@ -705,7 +722,7 @@ class SubmitController extends AuthenticatedController {
                             }
                         }
                         //Veranstaltungsseite bzw. ggf. nur Verweis schreiben
-                        $this->modulSeiteSchreiben($current_schwerpunktMitKursen[$j], $mainSection, $this->custom_styles['tableStyle'], 3, $bool_nurVerweis, $verweisAuf);
+                        $this->kursseiteSchreiben($current_schwerpunktMitKursen[$j], $mainSection, $this->custom_styles['tableStyle'], 3, $bool_nurVerweis, $verweisAuf);
                     }
 
                 }
@@ -714,13 +731,15 @@ class SubmitController extends AuthenticatedController {
             elseif ($this->inputArray['aufteilung'] == "alle") {
                 //Überschrift
                 $mainSection->addTitle($this->name_alleModule, 1);
-                $mainSection->addPageBreak();
+                if($this->inputArray['umbruch_moduleNachZuordnung'] == "on") {
+                    $mainSection->addPageBreak();
+                }
 
                 //Veranstaltungen sortiert schreiben
                 for ($i = 0; $i < sizeof($this->tabKursSchwerpunkte); $i++) { //Loop über Kurse
                     $current_kursobjekt = $this->tabKursSchwerpunkte[$i][0];
                     //Veranstaltungsseite schreiben
-                    $this->modulSeiteSchreiben($current_kursobjekt, $mainSection, $this->custom_styles['tableStyle'], 2,false, null);
+                    $this->kursseiteSchreiben($current_kursobjekt, $mainSection, $this->custom_styles['tableStyle'], 2,false, null);
                 }
             }
             else {} //ERROR
@@ -921,7 +940,9 @@ class SubmitController extends AuthenticatedController {
         return PluginEngine::getURL($this->plugin, $params, join("/", $args));
     }
 
+
     /**
+     * Fügt eine Zeile in Tabelle mit zwei Spalten ( | Zeilentitel | Inhalt | ) ein
      * @param $table Table Tabellenobjekt, in welches geschrieben wird
      * @param $titel String Titel des Eintrags in die Tabelle
      * @param $inhalt String Inhalt des Eintrags in die Tabelle
@@ -971,10 +992,12 @@ class SubmitController extends AuthenticatedController {
     }
 
     /**
+     * Fügt eine Zeile in Tabelle mit zwei Spalten ( | Zeilentitel | Inhalt | ) ein
      * @param $table Table Tabellenobjekt, in welches geschrieben wird
-     * @param $titel String Titel des Eintrags in die Tabelle
-     * @param $inhalt String Inhalt des Eintrags in die Tabelle
-     * @param $ignoreEmpty Sollen leere Inhalte ignoriert werden?
+     * @param $titel string Titel des Eintrags in die Tabelle
+     * @param $inhalt string Inhalt des Eintrags in die Tabelle
+     * @param $ignoreEmpty bool Sollen leere Inhalte ignoriert werden?
+     * @param $firstLetterUppercase bool Erster Buchstabe immer groß?
      */
     public function addTextToTable2($table, $titel, $inhalt, $ignoreEmpty = false, $firstLetterUppercase = true){
         if($inhalt == '' && $ignoreEmpty) {
@@ -1224,43 +1247,53 @@ class SubmitController extends AuthenticatedController {
     }
 
 
+    /**
+     * Schreibt die Seite eines Kurses
+     * @param $kursobjekt Course Das Kursobjekt
+     * @param $section Section Die momentane Section in die eingefügt / an die angehängt wird
+     * @param $tabStyle \PhpOffice\PhpWord\Style Style der Tabelle
+     * @param $headindDepth int Einrückung des Seitentitels (für TOC-Ebene)
+     * @param bool $nurVerweis Soll nur Verweise geschrieben werden (true) oder ganze normale die vollständige Seite (false)?
+     * @param $verweisAuf string Worauf verwiesen werden soll
+     */
+    public function kursseiteSchreiben($kursobjekt, $section, $tabStyle, $headindDepth, $nurVerweis = false, $verweisAuf){
+        $tmp_titel = "";
+        $tmp_kursname = $kursobjekt->name;
+        $tmp_kursnummer = $kursobjekt->veranstaltungsnummer;
 
-    public function modulSeiteSchreiben($kursobjekt, $section, $tabStyle, $headindDepth, $nurVerweis = false, $verweisAuf){
-        $addVeranstaltungsnummer = true;
-        $removeBAMA = true;
-        $addPN = false;
+        //Baue Titel zusammen
 
-        $nameToPrint = "";
+        if($this->inputArray['kursseiteVeranstaltungsnummer'] == "on")
+            $tmp_titel = $tmp_titel.$tmp_kursnummer."\t";
 
-        if($addVeranstaltungsnummer)
-            $nameToPrint = $nameToPrint.$kursobjekt->veranstaltungsnummer."\t";
+        if($this->inputArray['entferneBaMe'] == "on")
+            $tmp_kursname = $this->removeFrom($tmp_kursname, $this->kursnamen_bereinigung);
 
-        $kursname = $kursobjekt->name;
+        $tmp_titel = $tmp_titel.$tmp_kursname;
 
-        if($removeBAMA)
-            $kursname = str_replace(" (Bachelor)", "", str_replace(" (Master)", "", $kursname));
-
-        $nameToPrint = $nameToPrint.$kursname;
-
-        if($addPN)
-            $nameToPrint = $nameToPrint." (PN: ".$this->getPruefungsnummer($kursobjekt).")";
+        if($this->inputArray['kursseitePruefungsnummer'] == "on")
+            $tmp_titel = $tmp_titel.$this->kursDetailsTitelPruefungsnummerPrefix.$this->getPruefungsnummer($kursobjekt).$this->kursDetailsTitelPruefungsnummerSuffix;
 
         if($nurVerweis) {
-            $nameToPrint = $nameToPrint." (siehe ".$verweisAuf.")";
+            $tmp_titel = $tmp_titel.$this->kursDetailsTitelVerweisPrefix.$verweisAuf.$this->kursDetailsTitelVerweisSuffix;
         }
 
-        $section->addTitle($this->encodeText($nameToPrint), $headindDepth);
+        $section->addTitle($this->encodeText($tmp_titel), $headindDepth);
 
-        if($nurVerweis) {
-            $section->addText("Bitte entnehmen Sie die Veranstaltungsdetails aus der unter \"".$verweisAuf."\" gezeigten Übersicht.");
+        //Schreibe Seiteninhalt
+        if($nurVerweis) { //Nur Verweis
+            $section->addText($this->kursDetailsVerweisTextPrefix.$verweisAuf.$this->kursDetailsVerweisTextSuffix);
         }
-        else {
-            $table = $section->addTable($tabStyle);
-            $this->addTableToDoc($kursobjekt, $table);
+        else { //Schreibe Detailseite
+            $table = $section->addTable($tabStyle); //neue Tabelle
+            $this->addTableToDoc($kursobjekt, $table); //Schreibe Tabelle
         }
 
-        $section->addPageBreak();
+        if($this->inputArray['umbruch_kursseite'] == "on") {
+            $section->addPageBreak();
+        }
     }
+
 
     /**
      * Schreibt die Seite / den Titel des Schwerpunkts
@@ -1277,10 +1310,6 @@ class SubmitController extends AuthenticatedController {
 
     }
 
-
-    public function moduleSortiertDrucken(){
-
-    }
 
     /**
      * Gibt die Prüfungsnummer eines Kurses zurück
@@ -1312,10 +1341,9 @@ class SubmitController extends AuthenticatedController {
     }
 
 
-    //https://akrabat.com/substr_in_array/
-
     /**
      * Gibt an, ob Item (String) einen Hint (mehrere Hints im Array; erstes Vorkommen) enthält
+     * Nach https://akrabat.com/substr_in_array/
      * @param $item string Objekt das auf Hints geprüft werden soll
      * @param array $hintArray array Array von Hints
      * @param bool $lowercase bool Nur Lowercase-Vergleich (true) oder Captial-Sensitive (false)
@@ -1379,6 +1407,23 @@ class SubmitController extends AuthenticatedController {
     }
 
     /**
+     * Entferene etwas ($toRemove) aus einem Objekt/String ($item)
+     * Hauptsächlich verwendet für Bereinigung von " (Bachelor)", " (Master)" aus Veranstaltungsnamen
+     * @param $item string Item aus dem entfernt werden soll
+     * @param array $toRemove Was alles entfernt werden soll
+     * @return string Bereinigtes Objekt
+     */
+    public function removeFrom($item, array $toRemove) {
+        foreach ($toRemove as $current_bereinigung) {
+            $item = str_replace($current_bereinigung, "", $item);
+        }
+
+        return $item;
+    }
+
+
+
+    /**
      * Schreibt Kursdetails in Tabelle
      * @param $kursobjekt Course Kursobjekt
      * @param $table Table Tabellenobjekt, in welches geschrieben wird
@@ -1394,9 +1439,21 @@ class SubmitController extends AuthenticatedController {
         $tmp_laenge = "";
 
         //Erhebe Daten
-        $tmp_pn = $this->getPruefungsnummer($kursobjekt); //Prüfungsnummer
-
+        $tmp_untertitel = $kursobjekt->untertitel;
+        $tmp_veranstaltungsnummer = $kursobjekt->veranstaltungsnummer;
+        $tmp_veranstaltungstyp = $kursobjekt->getSemType()['name'];
         $tmp_schwerpunkt = $this->getSchwerpunkt($kursobjekt); //Schwerpunkt
+        $tmp_einrichtung = Institute::find($kursobjekt->institut_id)->name;
+        $tmp_art = $kursobjekt->art;
+        $tmp_beschreibung = $kursobjekt->beschreibung;
+        $tmp_lernmethoden = $kursobjekt->lernorga;
+        $tmp_voraussetzungen = $kursobjekt->vorrausetzungen;
+        $tmp_ects = $kursobjekt->ects;
+        $tmp_pn = $this->getPruefungsnummer($kursobjekt); //Prüfungsnummer
+        $tmp_pruefung = $kursobjekt->leistungsnachweis;
+        $tmp_sonstiges = $kursobjekt->sonstiges;
+        $tmp_teilnehmer = $kursobjekt->teilnehmer;
+
 
         foreach ($kursobjekt->datafields as $datafield) { //aus datafields
             if ($datafield->name === "SWS") { //Semesterwochenstunden
@@ -1426,6 +1483,7 @@ class SubmitController extends AuthenticatedController {
 
 
         //Aufbereitung
+        //============
 
         //Prüfe (und setze) Sprache
         if($this->inputArray['sprachenkonvertierung'] == 'on') {
@@ -1455,35 +1513,36 @@ class SubmitController extends AuthenticatedController {
         }
 
 
-        //sortierten Inhalt in Tabelle schreiben
-        $this->addTextToTable2($table, $textPre.$this->kursDetailsTabellenZeilenNamen[$tabLang]['unt'].$textSuf, $kursobjekt->untertitel,                                                       true);
-        $this->addTextToTable2($table, $textPre.$this->kursDetailsTabellenZeilenNamen[$tabLang]['vnr'].$textSuf, $kursobjekt->veranstaltungsnummer,                                             true);
-        $this->addTextToTable2($table, $textPre.$this->kursDetailsTabellenZeilenNamen[$tabLang]['typ'].$textSuf, $kursobjekt->getSemType()['name'],                                             true);
-        $this->addTextToTable2($table, $textPre.$this->kursDetailsTabellenZeilenNamen[$tabLang]['mod'].$textSuf, $tmp_schwerpunkt,                                                         true);
-        $this->addTextToTable2($table, $textPre.$this->kursDetailsTabellenZeilenNamen[$tabLang]['doz'].$textSuf, $this->dozenten($kursobjekt),                                                  true);
-        $this->addTextToTable2($table, $textPre.$this->kursDetailsTabellenZeilenNamen[$tabLang]['ein'].$textSuf, Institute::find($kursobjekt->institut_id)->name,                               true);
-        $this->addTextToTable2($table, $textPre.$this->kursDetailsTabellenZeilenNamen[$tabLang]['art'].$textSuf, $kursobjekt->art,                                                              true);
-        $this->addTextToTable2($table, $textPre.$this->kursDetailsTabellenZeilenNamen[$tabLang]['inh'].$textSuf, $kursobjekt->beschreibung,                                                     true);
-        $this->addTextToTable2($table, $textPre.$this->kursDetailsTabellenZeilenNamen[$tabLang]['qua'].$textSuf, $tmp_qualifikationsziele,                                                 true);
-        $this->addTextToTable2($table, $textPre.$this->kursDetailsTabellenZeilenNamen[$tabLang]['met'].$textSuf, $kursobjekt->lernorga,                                                         true);
-        $this->addTextToTable2($table, $textPre.$this->kursDetailsTabellenZeilenNamen[$tabLang]['vor'].$textSuf, $kursobjekt->vorrausetzungen,                                                  true);
-        $this->addTextToTable2($table, $textPre.$this->kursDetailsTabellenZeilenNamen[$tabLang]['hae'].$textSuf, $tmp_turnus,                                                              true);
-        $this->addTextToTable2($table, $textPre.$this->kursDetailsTabellenZeilenNamen[$tabLang]['lae'].$textSuf, $tmp_dur,                                                                 true);
-        $this->addTextToTable2($table, $textPre.$this->kursDetailsTabellenZeilenNamen[$tabLang]['wor'].$textSuf, $tmp_workload,                                                            true);
-        $this->addTextToTable2($table, $textPre.$this->kursDetailsTabellenZeilenNamen[$tabLang]['ect'].$textSuf, $kursobjekt->ects,                                                             true);
-        $this->addTextToTable2($table, $textPre.$this->kursDetailsTabellenZeilenNamen[$tabLang]['pnr'].$textSuf, $tmp_pn,                                                                  true);
-        $this->addTextToTable2($table, $textPre.$this->kursDetailsTabellenZeilenNamen[$tabLang]['pru'].$textSuf, $kursobjekt->leistungsnachweis,                                                true);
-        $this->addTextToTable2($table, $textPre.$this->kursDetailsTabellenZeilenNamen[$tabLang]['lit'].$textSuf, $tmp_literatur,                                                           true);
-        $this->addTextToTable2($table, $textPre.$this->kursDetailsTabellenZeilenNamen[$tabLang]['anr'].$textSuf, $tmp_anrechenbarkeit,                                                     true);
-        $this->addTextToTable2($table, $textPre.$this->kursDetailsTabellenZeilenNamen[$tabLang]['son'].$textSuf, $kursobjekt->sonstiges,                                                        true);
-        $this->addTextToTable2($table, $textPre.$this->kursDetailsTabellenZeilenNamen[$tabLang]['tei'].$textSuf, $cours->teilnehmer,                                                       true);
+        //Sortierten Inhalt in Tabelle schreiben
+        //======================================
+        $this->addTextToTable2($table, $this->kursDetailsTabellenZeilenInhaltPrefix.$this->kursDetailsTabellenZeilenNamen[$tabLang]['unt'].$this->kursDetailsTabellenZeilenInhaltSuffix, $tmp_untertitel,                                                       true);
+        $this->addTextToTable2($table, $this->kursDetailsTabellenZeilenInhaltPrefix.$this->kursDetailsTabellenZeilenNamen[$tabLang]['vnr'].$this->kursDetailsTabellenZeilenInhaltSuffix, $tmp_veranstaltungsnummer,                                             true);
+        $this->addTextToTable2($table, $this->kursDetailsTabellenZeilenInhaltPrefix.$this->kursDetailsTabellenZeilenNamen[$tabLang]['typ'].$this->kursDetailsTabellenZeilenInhaltSuffix, $tmp_veranstaltungstyp,                                             true);
+        $this->addTextToTable2($table, $this->kursDetailsTabellenZeilenInhaltPrefix.$this->kursDetailsTabellenZeilenNamen[$tabLang]['mod'].$this->kursDetailsTabellenZeilenInhaltSuffix, $tmp_schwerpunkt,                                                         true);
+        $this->addTextToTable2($table, $this->kursDetailsTabellenZeilenInhaltPrefix.$this->kursDetailsTabellenZeilenNamen[$tabLang]['doz'].$this->kursDetailsTabellenZeilenInhaltSuffix, $this->getDozenten($kursobjekt),                                                  true);
+        $this->addTextToTable2($table, $this->kursDetailsTabellenZeilenInhaltPrefix.$this->kursDetailsTabellenZeilenNamen[$tabLang]['ein'].$this->kursDetailsTabellenZeilenInhaltSuffix, $tmp_einrichtung,                               true);
+        $this->addTextToTable2($table, $this->kursDetailsTabellenZeilenInhaltPrefix.$this->kursDetailsTabellenZeilenNamen[$tabLang]['art'].$this->kursDetailsTabellenZeilenInhaltSuffix, $tmp_art,                                                              true);
+        $this->addTextToTable2($table, $this->kursDetailsTabellenZeilenInhaltPrefix.$this->kursDetailsTabellenZeilenNamen[$tabLang]['inh'].$this->kursDetailsTabellenZeilenInhaltSuffix, $tmp_beschreibung,                                                     true);
+        $this->addTextToTable2($table, $this->kursDetailsTabellenZeilenInhaltPrefix.$this->kursDetailsTabellenZeilenNamen[$tabLang]['qua'].$this->kursDetailsTabellenZeilenInhaltSuffix, $tmp_qualifikationsziele,                                                 true);
+        $this->addTextToTable2($table, $this->kursDetailsTabellenZeilenInhaltPrefix.$this->kursDetailsTabellenZeilenNamen[$tabLang]['met'].$this->kursDetailsTabellenZeilenInhaltSuffix, $tmp_lernmethoden,                                                         true);
+        $this->addTextToTable2($table, $this->kursDetailsTabellenZeilenInhaltPrefix.$this->kursDetailsTabellenZeilenNamen[$tabLang]['vor'].$this->kursDetailsTabellenZeilenInhaltSuffix, $tmp_voraussetzungen,                                                  true);
+        $this->addTextToTable2($table, $this->kursDetailsTabellenZeilenInhaltPrefix.$this->kursDetailsTabellenZeilenNamen[$tabLang]['hae'].$this->kursDetailsTabellenZeilenInhaltSuffix, $tmp_turnus,                                                              true);
+        //$this->addTextToTable2($table, $this->kursDetailsTabellenZeilenInhaltPrefix.$this->kursDetailsTabellenZeilenNamen[$tabLang]['lae'].$this->kursDetailsTabellenZeilenInhaltSuffix, $tmp_dur,                                                                 true);
+        $this->addTextToTable2($table, $this->kursDetailsTabellenZeilenInhaltPrefix.$this->kursDetailsTabellenZeilenNamen[$tabLang]['wor'].$this->kursDetailsTabellenZeilenInhaltSuffix, $tmp_workload,                                                            true);
+        $this->addTextToTable2($table, $this->kursDetailsTabellenZeilenInhaltPrefix.$this->kursDetailsTabellenZeilenNamen[$tabLang]['ect'].$this->kursDetailsTabellenZeilenInhaltSuffix, $tmp_ects,                                                             true);
+        $this->addTextToTable2($table, $this->kursDetailsTabellenZeilenInhaltPrefix.$this->kursDetailsTabellenZeilenNamen[$tabLang]['pnr'].$this->kursDetailsTabellenZeilenInhaltSuffix, $tmp_pn,                                                                  true);
+        $this->addTextToTable2($table, $this->kursDetailsTabellenZeilenInhaltPrefix.$this->kursDetailsTabellenZeilenNamen[$tabLang]['pru'].$this->kursDetailsTabellenZeilenInhaltSuffix, $tmp_pruefung,                                                true);
+        $this->addTextToTable2($table, $this->kursDetailsTabellenZeilenInhaltPrefix.$this->kursDetailsTabellenZeilenNamen[$tabLang]['lit'].$this->kursDetailsTabellenZeilenInhaltSuffix, $tmp_literatur,                                                           true);
+        $this->addTextToTable2($table, $this->kursDetailsTabellenZeilenInhaltPrefix.$this->kursDetailsTabellenZeilenNamen[$tabLang]['anr'].$this->kursDetailsTabellenZeilenInhaltSuffix, $tmp_anrechenbarkeit,                                                     true);
+        $this->addTextToTable2($table, $this->kursDetailsTabellenZeilenInhaltPrefix.$this->kursDetailsTabellenZeilenNamen[$tabLang]['son'].$this->kursDetailsTabellenZeilenInhaltSuffix, $tmp_sonstiges,                                                        true);
+        //$this->addTextToTable2($table, $textPre.$this->kursDetailsTabellenZeilenNamen[$tabLang]['tei'].$textSuf, $tmp_teilnehmer,                                                       true);
 
-        //debugfeld schreiben?
+        //Debugfeld schreiben?
         if($this->inputArray['debug'] == "on") {
-            $this->addTextToTable2($table, $textPre . $this->kursDetailsTabellenZeilenNamen[$tabLang]['deb'] . $textSuf, $tmp_debug, true);
+            $this->addTextToTable2($table, $this->kursDetailsTabellenZeilenInhaltPrefix . $this->kursDetailsTabellenZeilenNamen[$tabLang]['deb'] . $this->kursDetailsTabellenZeilenInhaltSuffix, $tmp_debug, true);
         }
 
-
+        //Sprache wieder (auf Deutsch) zurück setzen
         restoreLanguage();
 
 
@@ -1500,7 +1559,7 @@ class SubmitController extends AuthenticatedController {
                 $ectsBool = true;
         if($ectsBool)
             Log::warn_logdatei("Kurs " . $kursobjekt->name . ": ECTS besteht nicht nur aus Ziffern");
-        if($this->encodeText($this->dozenten($kursobjekt))==="")
+        if($this->encodeText($this->getDozenten($kursobjekt))==="")
             Log::warn_logdatei("Kurs " . $kursobjekt->name . ": Lehrende leer");
         if($this->encodeText(Institute::find($kursobjekt->institut_id)->name)==="")
             Log::warn_logdatei("Kurs " . $kursobjekt->name . ": Heimateinrichtung leer");
@@ -1530,17 +1589,18 @@ class SubmitController extends AuthenticatedController {
     }
 
     /**
-     * @param $cours Course Kursobjekt
+     * Gib alle Dozenten eines Kurses
+     * @param $kursobjekt Course Kursobjekt
      * @return string alle Lehrende dieses Kurses, mit Komma getrennt
      */
-    public function dozenten($cours){
+    public function getDozenten($kursobjekt){
         $l = 0;
-        foreach ($cours->members as $member)
+        foreach ($kursobjekt->members as $member)
             if($member->status==="dozent")
                 $l++;
 
         $lehrende = "";
-        foreach ($cours->members as $member){
+        foreach ($kursobjekt->members as $member){
             if($member->status==="dozent") {
                 if ($l == 1)
                     $lehrende .= User::find($member->user_id)->getFullName();

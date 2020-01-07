@@ -123,6 +123,17 @@ use Studip\Button;
             </label>
 
             <label>
+                <b>Kursseite</b>
+                <br>
+                <input name="fo_kursseiteVeranstaltungsnummer" type="checkbox" checked>
+                Titel enthält Veranstaltungsnummer (und damit auch das Inhaltsverzeichnis)
+                <br>
+                <input name="fo_kursseitePruefungsnummer" type="checkbox">
+                Titel enthält Prüfungsnummer (und damit auch das Inhaltsverzeichnis)
+
+            </label>
+
+            <label>
                 <b>Veranstaltungen in nicht deutscher Sprache</b>
                 <br>
                 <input name="fo_lang1" type="checkbox">
@@ -132,14 +143,23 @@ use Studip\Button;
             <label>
                 <b>Umbruch nach</b>
                 <br>
+                <input name="fo_umbruch_deckblatt" type="checkbox" checked>
+                Deckblatt
+                <br>
+                <input name="fo_umbruch_TOC" type="checkbox" checked>
+                Inhaltsverzeichnis
+                <br>
                 <input name="fo_umbruch_modulzuordnungstabellen" type="checkbox" checked>
                 Modulzuordnungstabellen
                 <br>
                 <input name="fo_umbruch_moduleNachZuordnung" type="checkbox" checked>
-                Überschrift: "Module nach Zuordnung" <i>(falls oben Gruppierung nach Schwerpunkten gewählt)</i>
+                Überschrift "Module nach Zuordnung" bzw. "Moduledetails"
                 <br>
                 <input name="fo_umbruch_schwerpunktGruppe" type="checkbox" checked>
                 Schwerpunktgruppe <i>(falls oben Gruppierung nach Schwerpunkten gewählt)</i>
+                <br>
+                <input name="fo_umbruch_kursseite" type="checkbox" checked>
+                Ende jeder Kursseite
             </label>
 
             <label>
