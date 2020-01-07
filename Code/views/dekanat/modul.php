@@ -200,6 +200,7 @@ use Studip\Button;
                     <option selected>Wirtschaftsinformatik/ Informations Systems</option>
                     <option selected>Interdisziplinäres Vertiefungsangebot</option>
                     <option selected>Interdisziplinärer Block</option>
+                    <option></option>
                 </select>
             </div>
             <br>
