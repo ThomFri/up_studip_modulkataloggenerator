@@ -623,6 +623,10 @@ class SubmitController extends AuthenticatedController {
                     if($this->inputArray['umbruch_deckblatt'] == "on") {
                         $headerSection->addPageBreak(); //Seitenumbruch nach Deckblatt?
                     }
+                    else {
+                        $headerSection->addTextBreak();
+                        $headerSection->addTextBreak();
+                    }
 
 
                 //Inhaltsverzeichnis
@@ -635,6 +639,10 @@ class SubmitController extends AuthenticatedController {
                 //Seitenumbruch nach Inhaltsverzeichnis?
                 if($this->inputArray['umbruch_TOC'] == "on") {
                     $tocSection->addPageBreak();
+                }
+                else {
+                    $tocSection->addTextBreak();
+                    $tocSection->addTextBreak();
                 }
                 //$count = 1;
 
@@ -677,6 +685,10 @@ class SubmitController extends AuthenticatedController {
                 if($this->inputArray['umbruch_zuordnungsTab'] == "on") {
                     $preContentSection->addPageBreak();
                 }
+                else {
+                    $preContentSection->addTextBreak();
+                    $preContentSection->addTextBreak();
+                }
 
 
 
@@ -692,6 +704,10 @@ class SubmitController extends AuthenticatedController {
                 //Seitenumbruch?
                 if($this->inputArray['umbruch_moduleNachZuordnung'] == "on") {
                     $mainSection->addPageBreak();
+                }
+                else {
+                    $mainSection->addTextBreak();
+                    $mainSection->addTextBreak();
                 }
 
                 //Veranstaltungen sortiert schreiben
@@ -733,6 +749,10 @@ class SubmitController extends AuthenticatedController {
                 $mainSection->addTitle($this->name_alleModule, 1);
                 if($this->inputArray['umbruch_moduleNachZuordnung'] == "on") {
                     $mainSection->addPageBreak();
+                }
+                else {
+                    $mainSection->addTextBreak();
+                    $mainSection->addTextBreak();
                 }
 
                 //Veranstaltungen sortiert schreiben
@@ -1292,6 +1312,10 @@ class SubmitController extends AuthenticatedController {
         if($this->inputArray['umbruch_kursseite'] == "on") {
             $section->addPageBreak();
         }
+        else {
+            $section->addTextBreak();
+            $section->addTextBreak();
+        }
     }
 
 
@@ -1306,6 +1330,10 @@ class SubmitController extends AuthenticatedController {
         //Umbruch?
         if($this->inputArray['umbruch_schwerpunktGruppe'] == "on") {
             $section->addPageBreak();
+        }
+        else {
+            $section->addTextBreak();
+            $section->addTextBreak();
         }
 
     }
