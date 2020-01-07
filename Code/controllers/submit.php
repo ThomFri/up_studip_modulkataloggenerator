@@ -90,47 +90,50 @@ class SubmitController extends AuthenticatedController {
         $this->name_alleModule = "Moduledetails";
         $this->name_hinweise = "Hinweise zu anderen Veranstaltungen";
         $this->relevanteModule = array(
-            //alle Module der verschiedenen Prüfungsordnungen und Studiengänge, die relevante Kurse enthalten
-            //ausgeschlossen sind Fremdsprachen, Studium Generale, Seminare des ZKK (siehe Hinweise auf letzter Seite des fertigen Dokuments)
-
-            //Bachelor
-                "Basismodule",
-                "Wahlmodule",
-                "Economics",
-                "Wirtschaftsinformatik",
-                "Accounting, Finance and Taxation",
-                "Management, Innovation, Marketing",
-                "Informatik / Mathematik",
-                "Wahlpflichtmodule",
-                "Seminar aus Wirtschaftsinformatik",
-                "Pflichtmodule",
-                "Wahlmodule BWL/VWL",
-                "Wahlmodule Wirtschaftsinformatik/Informatik",
-                "Schwerpunktnote", //weitere Abstufung notwendig (BWI WS2015)
-            //Master
-                "Methoden",
-                "Accounting, Finance and Taxation", //weitere Abstufung notwendig (MBA Version1)
-                "International Management and Marketing", //weitere Abstufung notwendig (MBA Version1)
-                "Wirtschaftsinformatik / Information Systems", //weitere Abstufung notwendig (MBA Version1)
-                "Modulgruppe A: Core Courses",
-                "Modulgruppe B: Advanced Methods",
-                "Modulgruppe C: Global Economy, International Trade, and Finance",
-                "Modulgruppe D: Governance, Institutions and Development",
-                "Modulgruppe E: Business",
-                "Statistische und theoretische Grundlagen",
-                "Globalization, Geography and the Multinational Firm",
-                "International Finance",
-                "Governance, Institutions and Anticorruption",
-                "Wirtschaftswissenschaftliche Grundlagen",
-                "Wirtschaftsinformatik/ Informations Systems",
-                "Interdisziplinäres Vertiefungsangebot",
-                "Interdisziplinärer Block");
+        //Verschoben in GUI!
+        //            //alle Module der verschiedenen Prüfungsordnungen und Studiengänge, die relevante Kurse enthalten
+        //            //ausgeschlossen sind Fremdsprachen, Studium Generale, Seminare des ZKK (siehe Hinweise auf letzter Seite des fertigen Dokuments)
+        //
+        //            //Bachelor
+        //                "Basismodule",
+        //                "Wahlmodule",
+        //                "Economics",
+        //                "Wirtschaftsinformatik",
+        //                "Accounting, Finance and Taxation",
+        //                "Management, Innovation, Marketing",
+        //                "Informatik / Mathematik",
+        //                "Wahlpflichtmodule",
+        //                "Seminar aus Wirtschaftsinformatik",
+        //                "Pflichtmodule",
+        //                "Wahlmodule BWL/VWL",
+        //                "Wahlmodule Wirtschaftsinformatik/Informatik",
+        //                "Schwerpunktnote", //weitere Abstufung notwendig (BWI WS2015)
+        //            //Master
+        //                "Methoden",
+        //                "Accounting, Finance and Taxation", //weitere Abstufung notwendig (MBA Version1)
+        //                "International Management and Marketing", //weitere Abstufung notwendig (MBA Version1)
+        //                "Wirtschaftsinformatik / Information Systems", //weitere Abstufung notwendig (MBA Version1)
+        //                "Modulgruppe A: Core Courses",
+        //                "Modulgruppe B: Advanced Methods",
+        //                "Modulgruppe C: Global Economy, International Trade, and Finance",
+        //                "Modulgruppe D: Governance, Institutions and Development",
+        //                "Modulgruppe E: Business",
+        //                "Statistische und theoretische Grundlagen",
+        //                "Globalization, Geography and the Multinational Firm",
+        //                "International Finance",
+        //                "Governance, Institutions and Anticorruption",
+        //                "Wirtschaftswissenschaftliche Grundlagen",
+        //                "Wirtschaftsinformatik/ Informations Systems",
+        //                "Interdisziplinäres Vertiefungsangebot",
+        //                "Interdisziplinärer Block"
+        );
         $this->relevanteVeranstaltungsTypen = array(
-            //sollten weitere Typen im Modulkatalog gewünscht sein, können diese hier hinzugefügt werden
-            "Vorlesung",
-            "Seminar",
-            "Praktikum"//,
-            //  "Blockveranstaltung"
+            //Verschoben in GUI
+            //            //sollten weitere Typen im Modulkatalog gewünscht sein, können diese hier hinzugefügt werden
+            //            "Vorlesung",
+            //            "Seminar",
+            //            "Praktikum"//,
+            //            //  "Blockveranstaltung"
         );
         $this->kursnamen_bereinigung = array(" (Bachelor)", " (Master)");
         $this->name_pruefungsordnung = "Primäre Prüfungsordnung: ";
@@ -315,9 +318,15 @@ class SubmitController extends AuthenticatedController {
                     "aufteilung" => Request::get("fo_aufteilung"),
                     "sorttype" => Request::get("fo_sort1"),
                     "sprachenkonvertierung" => Request::get("fo_lang1"),
+                    "relevanteSchwerpunkte" => Request::getArray("fo_relevanteSchwerpunkte"),
+                    "relevanteKurstypen" => Request::getArray("fo_relevanteKurstypen"),
                     "log" => Request::get("fo_log"), //inputArray['log'] = "on" oder ""
                     "debug" => Request::get("fo_debug")
                     );
+
+                //In andere globale Variablen umschreiben
+                $this->relevanteModule = array_merge($this->relevanteModule, $this->inputArray['relevanteSchwerpunkte']);
+                $this->relevanteVeranstaltungsTypen = array_merge($this->relevanteVeranstaltungsTypen, $this->inputArray['relevanteKurstypen']);
 
             }
 

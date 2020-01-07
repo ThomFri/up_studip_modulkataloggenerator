@@ -164,7 +164,54 @@ use Studip\Button;
                 <input name="fo_umbruch_kursseite" type="checkbox" checked>
                 .. Jeder Kursseite
 
-
+            </div>
+            <br>
+            <div>
+                <b>Zu berücksichtigende Schwerpunkte</b>
+                <br>
+                <select name="fo_relevanteSchwerpunkte[]" size="15" multiple>
+                    <option selected>Basismodule</option>
+                    <option selected>Wahlmodule</option>
+                    <option selected>Economics</option>
+                    <option selected>Wirtschaftsinformatik</option>
+                    <option selected>Accounting, Finance and Taxation</option>
+                    <option selected>Management, Innovation, Marketing</option>
+                    <option selected>Informatik / Mathematik</option>
+                    <option selected>Wahlpflichtmodule</option>
+                    <option selected>Seminar aus Wirtschaftsinformatik</option>
+                    <option selected>Pflichtmodule</option>
+                    <option selected>Wahlmodule BWL/VWL</option>
+                    <option selected>Wahlmodule Wirtschaftsinformatik/Informatik</option>
+                    <option selected>Schwerpunktnote</option>
+                    <option selected>Methoden</option>
+                    <option selected>Accounting, Finance and Taxation</option>
+                    <option selected>International Management and Marketing</option>
+                    <option selected>Wirtschaftsinformatik / Information Systems</option>
+                    <option selected>Modulgruppe A: Core Courses</option>
+                    <option selected>Modulgruppe B: Advanced Methods</option>
+                    <option selected>Modulgruppe C: Global Economy, International Trade, and Finance</option>
+                    <option selected>Modulgruppe D: Governance, Institutions and Development</option>
+                    <option selected>Modulgruppe E: Business</option>
+                    <option selected>Statistische und theoretische Grundlagen</option>
+                    <option selected>Globalization, Geography and the Multinational Firm</option>
+                    <option selected>International Finance</option>
+                    <option selected>Governance, Institutions and Anticorruption</option>
+                    <option selected>Wirtschaftswissenschaftliche Grundlagen</option>
+                    <option selected>Wirtschaftsinformatik/ Informations Systems</option>
+                    <option selected>Interdisziplinäres Vertiefungsangebot</option>
+                    <option selected>Interdisziplinärer Block</option>
+                </select>
+            </div>
+            <br>
+            <div>
+                <b>Zu berücksichtigende Kurstypen</b>
+                <br>
+                <select name="fo_relevanteKurstypen[]" size="5" multiple>
+                    <option selected>Vorlesung</option>
+                    <option selected>Seminar</option>
+                    <option selected>Praktikum</option>
+                    <option>Blockveranstaltung</option>
+                </select>
             </div>
             <br>
             <div>
