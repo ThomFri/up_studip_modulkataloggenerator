@@ -18,12 +18,12 @@ use Studip\Button;
 </script>
 
 
-
 <h2>Modulkatalog erzeugen</h2>
 <form name="modul_dek" class="default" method="POST" action="<?= $controller->url_for('submit/index')?>" onload="populateRegulation()">
     <section>
-        <label>
+        <div>
             <b>Semester</b>
+            <br>
             <select name="modul_semester" id="sem-drop" required="required">
                 <?php foreach ($semesters as $s) : ?>
                     <?php if ($s->name===$current_semester->name) : ?>
@@ -33,10 +33,11 @@ use Studip\Button;
                     <?php endif ?>
                 <?php endforeach ?>
             </select>
-        </label>
-
-        <label>
+        </div>
+        <br>
+        <div>
             <b>Studiengang</b>
+            <br>
             <select name="modul_major" id="major-drop" required="required" onchange="onChangeRegulation()">
                 <?php for($i = 0; $i<5; $i++) : ?>
                     <?php if ($studysubjects[$i]->name === "Bachelor Business Administration and Economics") : ?>
@@ -46,16 +47,17 @@ use Studip\Button;
                     <?php endif ?>
                 <?php endfor ?>
             </select>
-        </label>
-
-        <label>
+        </div>
+        <br>
+        <div>
             <b>Prüfungsordnung</b>
+            <br>
             <select name="modul_regulation" id="reg-drop" required="required">
                 <?php foreach ($poBAE as $item) :?>
                     <option value="<?= $item ?>"><?= $item ?></option>
                 <?php endforeach ?>
             </select>
-        </label>
+        </div>
 
 
         <br>
@@ -63,11 +65,10 @@ use Studip\Button;
         <a href="#" onclick="toggle_visibility('block_fo');">Erweiterte Optionen ein-/ausblenden</a>
         <div id="block_fo" style="display: none">
 
-
             <h2><i>Erweiterte Optionen</i></h2>
-
-            <label>
+            <div>
                 <b>Fakultät</b>
+                <br>
                 <select name="modul_faculty" id="fac-drop" required="required">
                     <option value="Wirtschaftswissenschaftliche Fakultät" selected="selected">Wirtschaftswissenschaftliche Fakultät</option>
 
@@ -77,23 +78,23 @@ use Studip\Button;
                         <?php endif ?>
                     <?php endforeach ?>
                 </select>
-            </label>
-
-            <label>
+            </div>
+            <br>
+            <div>
                 <b>Semesterauswahl erweitern</b>
                 <br>
                 <input name="modul_fullyear" type="checkbox">
                 Jahres-Katalog erstellen (mit oben ausgewähltem <u>+ vorangegangenem Semester</u>)
-            </label>
-
-            <label>
+            </div>
+            <br>
+            <div>
                 <b>Kursnamen</b>
                 <br>
                 <input name="fo_bamaBereinigen" type="checkbox" checked>
                 Entferne Zusätze wie "(Bachelor)" und "(Master)" aus Veranstaltungsnamen
-            </label>
-
-            <label>
+            </div>
+            <br>
+            <div>
                 <b>Kursgruppierung</b>
                 <br>
                 <input type="radio" name="fo_aufteilung" value="schwerpunkt" checked>
@@ -110,9 +111,9 @@ use Studip\Button;
                 <br>
                 <input type="radio" name="fo_aufteilung" value="alle">
                 Keine Gruppierung (-> einfach alle Kurse auflisten)
-            </label>
-
-            <label>
+            </div>
+            <br>
+            <div>
                 <b>Kurssortierung innerhalb Gruppe</b>
                 <br>
                 <input type="radio" name="fo_sort1" value="name" checked>
@@ -120,9 +121,10 @@ use Studip\Button;
                 <br>
                 <input type="radio" name="fo_sort1" value="num">
                 Nach Veranstaltungs<u>nummer</u>, aufsteigend
-            </label>
 
-            <label>
+            </div>
+            <br>
+            <div>
                 <b>Kursseite</b>
                 <br>
                 <input name="fo_kursseiteVeranstaltungsnummer" type="checkbox" checked>
@@ -131,38 +133,41 @@ use Studip\Button;
                 <input name="fo_kursseitePruefungsnummer" type="checkbox">
                 Titel enthält Prüfungsnummer (und damit auch das Inhaltsverzeichnis)
 
-            </label>
-
-            <label>
+            </div>
+            <br>
+            <div>
                 <b>Veranstaltungen in nicht deutscher Sprache</b>
                 <br>
                 <input name="fo_lang1" type="checkbox">
                 Veranstaltungsseite auf englisch ausgeben <i>(-> momentan nur erste Spalte!)</i>
-            </label>
 
-            <label>
-                <b>Umbruch nach</b>
+            </div>
+            <br>
+            <div>
+                <b>Umbruch nach...</b>
                 <br>
                 <input name="fo_umbruch_deckblatt" type="checkbox" checked>
-                Deckblatt
+                ... Deckblatt
                 <br>
                 <input name="fo_umbruch_TOC" type="checkbox" checked>
-                Inhaltsverzeichnis
+                ... Inhaltsverzeichnis
                 <br>
                 <input name="fo_umbruch_modulzuordnungstabellen" type="checkbox" checked>
-                Modulzuordnungstabellen
+                ... Allen Modulzuordnungstabellen
                 <br>
                 <input name="fo_umbruch_moduleNachZuordnung" type="checkbox" checked>
-                Überschrift "Module nach Zuordnung" bzw. "Moduledetails"
+                ... Überschrift "Module nach Zuordnung" bzw. "Moduledetails"
                 <br>
                 <input name="fo_umbruch_schwerpunktGruppe" type="checkbox" checked>
-                Schwerpunktgruppe <i>(falls oben Gruppierung nach Schwerpunkten gewählt)</i>
+                ... Schwerpunktgruppe <i>(falls oben Gruppierung nach Schwerpunkten gewählt)</i>
                 <br>
                 <input name="fo_umbruch_kursseite" type="checkbox" checked>
-                Ende jeder Kursseite
-            </label>
+                .. Jeder Kursseite
 
-            <label>
+
+            </div>
+            <br>
+            <div>
                 <b>Log und Debug</b>
                 <br>
                 <input name="fo_log" type="checkbox">
@@ -170,7 +175,8 @@ use Studip\Button;
                 <br>
                 <input name="fo_debug" type="checkbox">
                 DEBUG-Felder in Dokument schreiben
-            </label>
+
+            </div>
         </div>
         <br>
         <br>
