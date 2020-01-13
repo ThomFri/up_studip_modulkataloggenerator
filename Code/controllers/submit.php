@@ -84,11 +84,11 @@ class SubmitController extends AuthenticatedController {
         $this->sort_schwerpunkte_vorgabe = array("Basismodule", "Wahlpflichtmodule");
         $this->name_bachelorMaster = array("Bachelor", "Master");
         $this->name_bachelorMasterSuffix = "-Studiengang"; //nur für Deckblatt
-        $this->name_inhaltsverzeichnis = 'Inhaltsverzeichnis';
-        $this->name_modulzuordnung = "Modulzuordnung";
-        $this->name_moduleNachZuordnung = "Module nach Zuordnung";
-        $this->name_alleModule = "Moduledetails";
-        $this->name_hinweise = "Hinweise zu anderen Veranstaltungen";
+        $this->name_inhaltsverzeichnis = ""; //Verschoben in GUI 'Inhaltsverzeichnis';
+        $this->name_modulzuordnung = ""; //Verschoben in GUI "Modulzuordnung";
+        $this->name_moduleNachZuordnung = ""; //Verschoben in GUI "Kurse nach Zuordnung";
+        $this->name_alleModule = ""; //Verschoben in GUI "Kursdetails";
+        $this->name_hinweise = ""; //Verschoben in GUI "Hinweise zu anderen Veranstaltungen";
         $this->relevanteModule = array(
         //Verschoben in GUI!
         //            //alle Module der verschiedenen Prüfungsordnungen und Studiengänge, die relevante Kurse enthalten
@@ -135,33 +135,38 @@ class SubmitController extends AuthenticatedController {
             //            "Praktikum"//,
             //            //  "Blockveranstaltung"
         );
-        $this->kursnamen_bereinigung = array(" (Bachelor)", " (Master)");
-        $this->name_pruefungsordnung = "Primäre Prüfungsordnung: ";
-        $this->name_stand = "Stand: ";
+        $this->kursnamen_bereinigung = array(
+            //Verschoben in GUI
+            //" (Bachelor)", " (Master)"
+            );
+        $this->name_pruefungsordnung = ""; //Verschoben in GUI "Primäre Prüfungsordnung: ";
+        $this->name_stand = ""; //Verschoben in GUI "Stand: ";
         $this->dateTimeFormat = 'd. F Y'; //für Deckblatt
-        $this->deckblattText1 = "Falls Sie ältere Versionen des Modulkatalogs benötigen, setzen Sie sich bitte mit dem Dekanat der Wirtschaftswissenschaftlichen Fakultät in Verbindung (dekanat.wiwi@uni-passau.de).";
-        $this->deckblattText2 = "Für alle aufgeführten Veranstaltungen des Modulkatalogs gelten die Studien- und Qualifikationsvoraussetzungen gemäß der jeweiligen Prüfungs- und Studienordnung.";
+        $this->deckblattText1 = ""; //Verschoben in GUI "Falls Sie ältere Versionen des Modulkatalogs benötigen, setzen Sie sich bitte mit dem Dekanat der Wirtschaftswissenschaftlichen Fakultät in Verbindung (dekanat.wiwi@uni-passau.de).";
+        $this->deckblattText2 = ""; //Verschoben in GUI "Für alle aufgeführten Veranstaltungen des Modulkatalogs gelten die Studien- und Qualifikationsvoraussetzungen gemäß der jeweiligen Prüfungs- und Studienordnung.";
         $this->hinweisUeberschriften = array(
-            "Schwerpunkt Studium Generale",
-            "Fremdsprachenangebot",
-            "Schlüsselkompetenzen"
+            //Verschoben in GUI
+            //"Schwerpunkt Studium Generale",
+            //"Fremdsprachenangebot",
+            //"Schlüsselkompetenzen"
         );
         $this->hinweisDazugehoerigeTexte = array(
+            //Verschoben in GUI
             //Schwerpunkt Studium Generale
-            "Im Schwerpunkt -Studium Generale- können je nach Kapazität Angebote anderer Fakultäten gewählt werden. Die Angebote entnehmen Sie bitte aus Stud-IP.",
+            ////"Im Schwerpunkt -Studium Generale- können je nach Kapazität Angebote anderer Fakultäten gewählt werden. Die Angebote entnehmen Sie bitte aus Stud-IP.",
             //Fremdsprachenangebot
-            "Bei den Wahlmodulen Fremdsprachen / Schlüsselkompetenzen können Sie eine Wirtschaftsfremdsprache aus dem Angebot des Sprachenzentrums der Universität Passau wählen. Das Angebot entnehmen Sie bitte aus dessen Website: http://www.sprachenzentrum.uni-passau.de/fremdsprachenausbildung/ffa/ffa-fuer-wirtschaftswissenschaftler/ Sie wählen Sprachkurse gemäß Ihren (durch Einstufungstest oder Zertifikat festgestellten) Vorkenntnissen. Prüfungsmodul ist das vollständig absolvierte Modul der jeweils höchsten erreichten Stufe. In allen Sprachen wählen Sie ab der Aufbaustufe die Fachsprache Wirtschaft. Englisch kann grundsätzlich erst ab der Aufbaustufe gewählt werden. ",
+            ////"Bei den Wahlmodulen Fremdsprachen / Schlüsselkompetenzen können Sie eine Wirtschaftsfremdsprache aus dem Angebot des Sprachenzentrums der Universität Passau wählen. Das Angebot entnehmen Sie bitte aus dessen Website: http://www.sprachenzentrum.uni-passau.de/fremdsprachenausbildung/ffa/ffa-fuer-wirtschaftswissenschaftler/ Sie wählen Sprachkurse gemäß Ihren (durch Einstufungstest oder Zertifikat festgestellten) Vorkenntnissen. Prüfungsmodul ist das vollständig absolvierte Modul der jeweils höchsten erreichten Stufe. In allen Sprachen wählen Sie ab der Aufbaustufe die Fachsprache Wirtschaft. Englisch kann grundsätzlich erst ab der Aufbaustufe gewählt werden. ",
             //Schlüsselkompetenzen
-            "Zusätzlich können Sie Veranstaltungen zu Schlüsselkompetenzen aus dem Angebot des Zentrums für Karriere und Kompetenzen wählen. Das Angebot entnehmen Sie bitte aus dessen Website: http://www.uni-passau.de/studium/service-und-beratung/zkk/veranstaltungen/fuer-studierende/"
+            ////"Zusätzlich können Sie Veranstaltungen zu Schlüsselkompetenzen aus dem Angebot des Zentrums für Karriere und Kompetenzen wählen. Das Angebot entnehmen Sie bitte aus dessen Website: http://www.uni-passau.de/studium/service-und-beratung/zkk/veranstaltungen/fuer-studierende/"
          );
 
         $this->englishHints = array("(ENGLISCH)", "Course language is English.");
-        $this->kursDetailsTitelPruefungsnummerPrefix =" (PN: ";
-        $this->kursDetailsTitelPruefungsnummerSuffix =")";
-        $this->kursDetailsTitelVerweisPrefix =" (siehe ";
-        $this->kursDetailsTitelVerweisSuffix =")";
-        $this->kursDetailsVerweisTextPrefix ="Bitte entnehmen Sie die Veranstaltungsdetails aus der unter \"";
-        $this->kursDetailsVerweisTextSuffix ="\" gezeigten Übersicht.";
+        $this->kursDetailsTitelPruefungsnummerPrefix = ""; //Verschoben in GUI " (PN: ";
+        $this->kursDetailsTitelPruefungsnummerSuffix = ""; //Verschoben in GUI ")";
+        $this->kursDetailsTitelVerweisPrefix = ""; //Verschoben in GUI " (siehe ";
+        $this->kursDetailsTitelVerweisSuffix = ""; //Verschoben in GUI ")";
+        $this->kursDetailsVerweisTextPrefix = ""; //Verschoben in GUI "Bitte entnehmen Sie die Veranstaltungsdetails aus der unter \"";
+        $this->kursDetailsVerweisTextSuffix = ""; //Verschoben in GUI "\" gezeigten Übersicht.";
         $this->kursDetailsTabellenZeilenNamen = array(
             //deutsche Bezeichnungen
             "de" => array(
@@ -214,8 +219,8 @@ class SubmitController extends AuthenticatedController {
                 'deb' => 'DEBUG:'
             ),
         );
-        $this->kursDetailsTabellenZeilenInhaltPrefix = "";
-        $this->kursDetailsTabellenZeilenInhaltSuffix = "";
+        $this->kursDetailsTabellenZeilenInhaltPrefix = ""; //Verschoben in GUI "";
+        $this->kursDetailsTabellenZeilenInhaltSuffix = ""; //Verschoben in GUI "";
 
 
         $this->gaengigeTurnusNamen = array(
@@ -232,7 +237,7 @@ class SubmitController extends AuthenticatedController {
             "Bitte beachten Sie die Hinweise auf der Lehrstuhl-Homepage",
             "Sommersemester", "Wintersemester");
 
-        $this->zusatztextTurnusWeitereAngaben = "\nBitte entnehmen Sie gegebenenfalls die konkrete Dauer aus den weiteren Angaben.";
+        $this->zusatztextTurnusWeitereAngaben = ""; //Verschoben in GUI "\nBitte entnehmen Sie gegebenenfalls die konkrete Dauer aus den weiteren Angaben.";
 
     }
 
@@ -320,6 +325,44 @@ class SubmitController extends AuthenticatedController {
                     "sprachenkonvertierung" => Request::get("fo_lang1"),
                     "relevanteSchwerpunkte" => Request::getArray("fo_relevanteSchwerpunkte"),
                     "relevanteKurstypen" => Request::getArray("fo_relevanteKurstypen"),
+                    "namePruefungsordnung" => Request::get("fo_text_deckblattPruefungsordnung"),
+                    "textDeckblattStand" => Request::get("fo_text_deckblattStand"),
+                    "textDeckblattText1" => Request::get("fo_text_deckblattText1"),
+                    "textDeckblattText2" => Request::get("fo_text_deckblattText2"),
+                    "textIhvTitel" => Request::get("fo_text_IhvTitel"),
+                    "textMzoTitel" => Request::get("fo_text_MzoTitel"),
+                    "textKnZTitel" => Request::get("fo_text_KnZTitel"),
+                    "textKdTitel" => Request::get("fo_text_KdTitel"),
+                    "textKdPNPre" => Request::get("fo_text_KdPNPre"),
+                    "textKdPNSuf" => Request::get("fo_text_KdPNSuf"),
+                    "textKdUeVerwPre" => Request::get("fo_text_KdUeVerwPre"),
+                    "textKdUeVerwSuf" => Request::get("fo_text_KdUeVerwSuf"),
+                    "textKdTVerwPre" => Request::get("fo_text_KdTVerwPre"),
+                    "textKdTVerwSuf" => Request::get("fo_text_KdTVerwSuf"),
+                    "textKdZuePre" => Request::get("fo_text_KdZuePre"),
+                    "textKdZUeSuf" => Request::get("fo_text_KdZUeSuf"),
+                    "textKdTDauer" => Request::get("fo_text_KdTDauer"),
+                    "" => Request::get(""),
+                    "" => Request::get(""),
+                    "" => Request::get(""),
+
+                    "textHzavTitel" => Request::get("fo_text_hzavTitel"),
+                    "textHzavUeSSG" => Request::get("fo_text_hzavUeSSG"),
+                    "textHzavTSSG" => Request::get("fo_text_hzavTSSG"),
+                    "textHzavUeFSA" => Request::get("fo_text_hzavUeFSA"),
+                    "textHzavTFSA" => Request::get("fo_text_hzavTFSA"),
+                    "textHzavUeSK" => Request::get("fo_text_hzavUeSK"),
+                    "textHzavTSK" => Request::get("fo_text_hzavTSK"),
+
+                    //"" => Request::get(""),
+                    //"" => Request::get(""),
+                    //"" => Request::get(""),
+                    //"" => Request::get(""),
+                    //"" => Request::get(""),
+                    //"" => Request::get(""),
+                    //"" => Request::get(""),
+
+                    "bereinigungKusnamenBaMa" => Request::getArray("fo_bereinigung_bama"),
                     "log" => Request::get("fo_log"), //inputArray['log'] = "on" oder ""
                     "debug" => Request::get("fo_debug")
                     );
@@ -327,7 +370,84 @@ class SubmitController extends AuthenticatedController {
                 //In andere globale Variablen umschreiben
                 $this->relevanteModule = array_merge($this->relevanteModule, $this->inputArray['relevanteSchwerpunkte']);
                 $this->relevanteVeranstaltungsTypen = array_merge($this->relevanteVeranstaltungsTypen, $this->inputArray['relevanteKurstypen']);
+                $this->kursnamen_bereinigung = array_merge($this->kursnamen_bereinigung, $this->inputArray['bereinigungKusnamenBaMa']);
+                $this->deckblattText1 = $this->inputArray['textDeckblattText1'];
+                $this->deckblattText2 = $this->inputArray['textDeckblattText2'];
+                $this->name_pruefungsordnung = $this->inputArray['namePruefungsordnung'];
+                $this->name_stand = $this->inputArray['textDeckblattStand'];
+                $this->name_inhaltsverzeichnis = $this->inputArray['textIhvTitel'];;
+                $this->name_modulzuordnung = $this->inputArray['textMzoTitel'];
+                $this->name_moduleNachZuordnung = $this->inputArray['textKnZTitel'];
+                $this->name_alleModule = $this->inputArray['textKdTitel'];
+                $this->kursDetailsTitelPruefungsnummerPrefix = $this->inputArray['textKdPNPre'];
+                $this->kursDetailsTitelPruefungsnummerSuffix = $this->inputArray['textKdPNSuf'];
+                $this->kursDetailsTitelVerweisPrefix = $this->inputArray['textKdUeVerwPre'];
+                $this->kursDetailsTitelVerweisSuffix = $this->inputArray['textKdUeVerwSuf'];
+                $this->kursDetailsVerweisTextPrefix = $this->inputArray['textKdTVerwPre'];
+                $this->kursDetailsVerweisTextSuffix = $this->inputArray['textKdTVerwSuf'];
+                $this->kursDetailsTabellenZeilenNamen = array(
+                    //deutsche Bezeichnungen
+                    "de" => array(
+                        'unt' => 'Untertitel',
+                        'vnr' => 'Veranstaltungsnummer',
+                        'typ' => 'Typ der Veranstaltung',
+                        'mod' => 'Moduleinordnung',
+                        'doz' => 'Dozenten',
+                        'ein' => 'Heimateinrichtung',
+                        'art' => 'Art/Form',
+                        'inh' => 'Inhalt des Moduls / Beschreibung',
+                        'qua' => 'Qualifikationsziele des Moduls',
+                        'met' => 'Lehr- und Lernmethoden des Moduls',
+                        'vor' => 'Voraussetzungen für die Teilnahme',
+                        'hae' => 'Häufigkeit des Angebots des Moduls',
+                        'lae' => 'Länge des Moduls',
+                        'wor' => 'Workload des Moduls',
+                        'ect' => 'ECTS',
+                        'pnr' => 'Prüfungsnummer',
+                        'pru' => 'Art der Prüfung/Voraussetzung für die Vergabe von Leistungspunkten/Dauer der Prüfung',
+                        'lit' => 'Empfohlene Literaturliste (Lehr- und Lernmaterialien, Literatur)',
+                        'anr' => 'Hinweise zur Anrechenbarkeit',
+                        'son' => 'Sonstiges / Besonderes (z.B. Online-Anteil, Praxisbesuche, Gastvorträge, etc.)',
+                        'tei' => 'Teilnehmer',
+                        'deb' => 'DEBUG:'
+                    ),
+                    //englische Bezeichnungen
+                    "en" => array(
+                        'unt' => 'Subtitle',
+                        'vnr' => 'Course Number',
+                        'typ' => 'Courses Type',
+                        'mod' => 'Course Allocation',
+                        'doz' => 'Lecturer',
+                        'ein' => 'Home Institute',
+                        'art' => 'Type/Form',
+                        'inh' => 'Content/Description',
+                        'qua' => 'Qualification Goals',
+                        'met' => 'Learning organization',
+                        'vor' => 'Pre-Requisites',
+                        'hae' => 'Rotation',
+                        'lae' => 'Length',
+                        'wor' => 'Workload',
+                        'ect' => 'ECTS',
+                        'pnr' => 'Test Number',
+                        'pru' => 'Performance Record',
+                        'lit' => 'Recommended Literature (Teaching and Learning Materials, Literature)',
+                        'anr' => 'Notes on Creditability',
+                        'son' => 'Miscellaneous',
+                        'tei' => 'Current Number of Participants',
+                        'deb' => 'DEBUG:'
+                    ),
+                );
+                $this->kursDetailsTabellenZeilenInhaltPrefix = $this->inputArray['textKdZuePre'];
+                $this->kursDetailsTabellenZeilenInhaltSuffix = $this->inputArray['textKdZUeSuf'];
+                $this->zusatztextTurnusWeitereAngaben = $this->inputArray['textKdTDauer'];
 
+                $this->name_hinweise = $this->inputArray['textHzavTitel'];
+                $this->hinweisUeberschriften[0] = $this->inputArray['textHzavUeSSG'];
+                $this->hinweisUeberschriften[1] = $this->inputArray['textHzavUeFSA'];
+                $this->hinweisUeberschriften[2] = $this->inputArray['textHzavUeSK'];
+                $this->hinweisDazugehoerigeTexte[0] = $this->inputArray['textHzavTSSG'];
+                $this->hinweisDazugehoerigeTexte[1] = $this->inputArray['textHzavTFSA'];
+                $this->hinweisDazugehoerigeTexte[2] = $this->inputArray['textHzavTSK'];
             }
 
 
@@ -1546,7 +1666,7 @@ class SubmitController extends AuthenticatedController {
 
         //Ggf. Zusatztext für Turnus hinzufügen
         if($tmp_turnus != "" && !$this->in_array_strposZero($tmp_turnus, $this->gaengigeTurnusNamen)) {
-                $tmp_turnus = $tmp_turnus.$this->zusatztextTurnusWeitereAngaben;
+                $tmp_turnus = $tmp_turnus."\n".$this->zusatztextTurnusWeitereAngaben;
         }
 
 

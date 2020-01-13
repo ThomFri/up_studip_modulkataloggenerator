@@ -88,13 +88,6 @@ use Studip\Button;
             </div>
             <br>
             <div>
-                <b>Kursnamen</b>
-                <br>
-                <input name="fo_bamaBereinigen" type="checkbox" checked>
-                Entferne Zusätze wie "(Bachelor)" und "(Master)" aus Veranstaltungsnamen
-            </div>
-            <br>
-            <div>
                 <b>Kursgruppierung</b>
                 <br>
                 <input type="radio" name="fo_aufteilung" value="schwerpunkt" checked>
@@ -156,7 +149,7 @@ use Studip\Button;
                 ... Allen Modulzuordnungstabellen
                 <br>
                 <input name="fo_umbruch_moduleNachZuordnung" type="checkbox" checked>
-                ... Überschrift "Module nach Zuordnung" bzw. "Moduledetails"
+                ... Überschrift "Kurse nach Zuordnung" bzw. "Moduledetails"
                 <br>
                 <input name="fo_umbruch_schwerpunktGruppe" type="checkbox" checked>
                 ... Schwerpunktgruppe <i>(falls oben Gruppierung nach Schwerpunkten gewählt)</i>
@@ -213,6 +206,123 @@ use Studip\Button;
                     <option selected>Praktikum</option>
                     <option>Blockveranstaltung</option>
                 </select>
+            </div>
+            <br>
+            <div>
+                <b>Bereinigungen</b>
+                <br>
+                <u>Aus Kursnamen</u>
+                <br>
+                <input name="fo_bamaBereinigen" type="checkbox" checked>
+                Entferne nachfolgende Zusätze aus Kursnamen:
+                <br>
+                <select name="fo_bereinigung_bama[]" size="3" multiple>
+                    <option selected> (Bachelor)</option>
+                    <option selected> (Master)</option>
+                </select>
+            </div>
+            <br>
+            <div>
+                <b>Texte und Überschriften</b> <i>(Umbrüche werden nicht berücksichtigt!)</i>
+                <br>
+                <u>Deckblatt: Prüfungsordnung</u>
+                <br>
+                <input type="text" name="fo_text_deckblattPruefungsordnung" value="Primäre Prüfungsordnung: ">
+                <br>
+                <br>
+                <u>Deckblatt: Stand</u>
+                <br>
+                <input type="text" name="fo_text_deckblattStand" value="Stand: ">
+                <br>
+                <br>
+                <u>Deckblatt: Hinweistext 1</u>
+                <br>
+                <textarea name="fo_text_deckblattText1">Falls Sie ältere Versionen des Modulkatalogs benötigen, setzen Sie sich bitte mit dem Dekanat der Wirtschaftswissenschaftlichen Fakultät in Verbindung (dekanat.wiwi@uni-passau.de).</textarea>
+                <br>
+                <br>
+                <u>Deckblatt: Hinweistext 2</u>
+                <br>
+                <textarea name="fo_text_deckblattText2">Für alle aufgeführten Veranstaltungen des Modulkatalogs gelten die Studien- und Qualifikationsvoraussetzungen gemäß der jeweiligen Prüfungs- und Studienordnung.</textarea>
+                <br>
+                <br>
+                <u>Inhaltsverzeichnis: Titel</u>
+                <br>
+                <input type="text" name="fo_text_IhvTitel" value="Inhaltsverzeichnis">
+                <br>
+                <br>
+                <u>Modulzuordnung: Titel</u>
+                <br>
+                <input type="text" name="fo_text_MzoTitel" value="Modulzuordnung">
+                <br>
+                <br>
+                <u>Kurse nach Zuordnung: Titel</u>
+                <br>
+                <input type="text" name="fo_text_KnZTitel" value="Kurse nach Zuordnung">
+                <br>
+                <br>
+                <u>Kursdetails: Titel</u>
+                <br>
+                <input type="text" name="fo_text_KdTitel" value="Kursdetails">
+                <br>
+                <br>
+                <u>Kursdetails: Prefix + Suffix, wenn PN in Überschrift</u>
+                <br>
+                <input type="text" name="fo_text_KdPNPre" size="5" value=" (PN: "> <i>«Prüfungsnummer»</i> <input type="text" name="fo_text_KdPNSuf" size="5" value=")">
+                <br>
+                <br>
+                <u>Kursdetails: Verweis in Überschrift</u>
+                <br>
+                <input type="text" name="fo_text_KdUeVerwPre" size="5" value=" (siehe "> <i>«Schwerpunkt»</i> <input type="text" name="fo_text_KdUeVerwSuf" size="5" value=")">
+                <br>
+                <br>
+                <u>Kursdetails: Verweistext auf andere Seite</u>
+                <br>
+                <input type="text" name="fo_text_KdTVerwPre" size="5" value="Bitte entnehmen Sie die Veranstaltungsdetails aus der unter &bdquo;"> <i>«Schwerpunkt»</i> <input type="text" name="fo_text_KdTVerwSuf" size="5" value="&ldquo; gezeigten Übersicht.">
+                <br>
+                <br>
+                <u>Kursdetails: Prefix + Suffix für "Zeilenüberschriften" der Tabelle</u>
+                <br>
+                <input type="text" name="fo_text_KdZuePre" size="25" value=""> <i>«Zeilenüberschrift»</i> <input type="text" name="fo_text_KdZUeSuf" size="25" value="">
+                <br>
+                <br>
+                <u>Kursdetails: Bitte entnehmen Sie gegebenenfalls die konkrete Dauer aus den weiteren Angaben.</u>
+                <br>
+                <input type="text" name="fo_text_KdTDauer" value="Bitte entnehmen Sie gegebenenfalls die konkrete Dauer aus den weiteren Angaben.">
+                <br>
+                <br>
+                <u>Hinweise zu anderen Veranstaltungen: Titel</u>
+                <br>
+                <input type="text" name="fo_text_hzavTitel" value="Hinweise zu anderen Veranstaltungen">
+                <br>
+                <br>
+                <u>Hinweise zu anderen Veranstaltungen: Überschrift: Schwerpunkt Studium Generale</u>
+                <br>
+                <input type="text" name="fo_text_hzavUeSSG" value="Schwerpunkt Studium Generale">
+                <br>
+                <br>
+                <u>Hinweise zu anderen Veranstaltungen: Text: Schwerpunkt Studium Generale</u>
+                <br>
+                <textarea name="fo_text_hzavTSSG">Im Schwerpunkt -Studium Generale- können je nach Kapazität Angebote anderer Fakultäten gewählt werden. Die Angebote entnehmen Sie bitte aus Stud-IP.</textarea>
+                <br>
+                <br>
+                <u>Hinweise zu anderen Veranstaltungen: Überschrift: Fremdsprachenangebot</u>
+                <br>
+                <input type="text" name="fo_text_hzavUeFSA" value="Fremdsprachenangebot">
+                <br>
+                <br>
+                <u>Hinweise zu anderen Veranstaltungen: Text: Fremdsprachenangebot</u>
+                <br>
+                <textarea name="fo_text_hzavTFSA" rows="8">Bei den Wahlmodulen Fremdsprachen / Schlüsselkompetenzen können Sie eine Wirtschaftsfremdsprache aus dem Angebot des Sprachenzentrums der Universität Passau wählen. Das Angebot entnehmen Sie bitte aus dessen Website: http://www.sprachenzentrum.uni-passau.de/fremdsprachenausbildung/ffa/ffa-fuer-wirtschaftswissenschaftler/ Sie wählen Sprachkurse gemäß Ihren (durch Einstufungstest oder Zertifikat festgestellten) Vorkenntnissen. Prüfungsmodul ist das vollständig absolvierte Modul der jeweils höchsten erreichten Stufe. In allen Sprachen wählen Sie ab der Aufbaustufe die Fachsprache Wirtschaft. Englisch kann grundsätzlich erst ab der Aufbaustufe gewählt werden.</textarea>
+                <br>
+                <br>
+                <u>Hinweise zu anderen Veranstaltungen: Überschrift: Schlüsselkompetenzen</u>
+                <br>
+                <input type="text" name="fo_text_hzavUeSK" value="Schlüsselkompetenzen">
+                <br>
+                <br>
+                <u>Hinweise zu anderen Veranstaltungen: Text: Schlüsselkompetenzen</u>
+                <br>
+                <textarea name="fo_text_hzavTSK">Zusätzlich können Sie Veranstaltungen zu Schlüsselkompetenzen aus dem Angebot des Zentrums für Karriere und Kompetenzen wählen. Das Angebot entnehmen Sie bitte aus dessen Website: http://www.uni-passau.de/studium/service-und-beratung/zkk/veranstaltungen/fuer-studierende/</textarea>
             </div>
             <br>
             <div>
