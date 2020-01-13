@@ -307,32 +307,43 @@ class SubmitController extends AuthenticatedController {
                     "fakultaet" => Request::get("modul_faculty"),
                     "studiengang" => Request::get("modul_major"),
                     "po" => Request::get("modul_regulation"),
+
                     "datei" => $datei,
                     "auftrag" => $auftrag,
                     "profUsername" => "",
+
                     "entferneBaMe" => Request::get("fo_bamaBereinigen"),
+
                     "verweisStattAusgabe" => Request::get("fo_veranstaltungsVerweis"),
                     "verweisStattAusgabeTOC" => Request::get("fo_veranstaltungsVerweisTOC"),
+
                     "kursseiteVeranstaltungsnummer" => Request::get("fo_kursseiteVeranstaltungsnummer"),
                     "kursseitePruefungsnummer" => Request::get("fo_kursseitePruefungsnummer"),
+
                     "umbruch_TOC" => Request::get("fo_umbruch_TOC"),
                     "umbruch_deckblatt" => Request::get("fo_umbruch_deckblatt"),
                     "umbruch_zuordnungsTab" => Request::get("fo_umbruch_modulzuordnungstabellen"),
                     "umbruch_moduleNachZuordnung" => Request::get("fo_umbruch_moduleNachZuordnung"),
                     "umbruch_schwerpunktGruppe" => Request::get("fo_umbruch_schwerpunktGruppe"),
                     "umbruch_kursseite" => Request::get("fo_umbruch_kursseite"),
+
                     "aufteilung" => Request::get("fo_aufteilung"),
                     "sorttype" => Request::get("fo_sort1"),
                     "sprachenkonvertierung" => Request::get("fo_lang1"),
                     "relevanteSchwerpunkte" => Request::getArray("fo_relevanteSchwerpunkte"),
                     "relevanteKurstypen" => Request::getArray("fo_relevanteKurstypen"),
+
                     "namePruefungsordnung" => Request::get("fo_text_deckblattPruefungsordnung"),
                     "textDeckblattStand" => Request::get("fo_text_deckblattStand"),
                     "textDeckblattText1" => Request::get("fo_text_deckblattText1"),
                     "textDeckblattText2" => Request::get("fo_text_deckblattText2"),
+
                     "textIhvTitel" => Request::get("fo_text_IhvTitel"),
+
                     "textMzoTitel" => Request::get("fo_text_MzoTitel"),
+
                     "textKnZTitel" => Request::get("fo_text_KnZTitel"),
+
                     "textKdTitel" => Request::get("fo_text_KdTitel"),
                     "textKdPNPre" => Request::get("fo_text_KdPNPre"),
                     "textKdPNSuf" => Request::get("fo_text_KdPNSuf"),
@@ -365,6 +376,7 @@ class SubmitController extends AuthenticatedController {
                     "textKdTabZTDEanr" => Request::get("fo_text_KdTabZT_de_anr"),
                     "textKdTabZTDEson" => Request::get("fo_text_KdTabZT_de_son"),
                     "textKdTabZTDEtei" => Request::get("fo_text_KdTabZT_de_tei"),
+
                     "textKdTabZTENunt" => Request::get("fo_text_KdTabZT_en_unt"),
                     "textKdTabZTENvnr" => Request::get("fo_text_KdTabZT_en_vnr"),
                     "textKdTabZTENtyp" => Request::get("fo_text_KdTabZT_en_typ"),
@@ -395,15 +407,8 @@ class SubmitController extends AuthenticatedController {
                     "textHzavUeSK" => Request::get("fo_text_hzavUeSK"),
                     "textHzavTSK" => Request::get("fo_text_hzavTSK"),
 
-                    //"" => Request::get(""),
-                    //"" => Request::get(""),
-                    //"" => Request::get(""),
-                    //"" => Request::get(""),
-                    //"" => Request::get(""),
-                    //"" => Request::get(""),
-                    //"" => Request::get(""),
-
                     "bereinigungKusnamenBaMa" => Request::getArray("fo_bereinigung_bama"),
+
                     "log" => Request::get("fo_log"), //inputArray['log'] = "on" oder ""
                     "debug" => Request::get("fo_debug")
                     );
