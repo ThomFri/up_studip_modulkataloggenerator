@@ -155,7 +155,7 @@ use Studip\Button;
                 ... Schwerpunktgruppe <i>(falls oben Gruppierung nach Schwerpunkten gewählt)</i>
                 <br>
                 <input name="fo_umbruch_kursseite" type="checkbox" checked>
-                .. Jeder Kursseite
+                ... Jeder Kursseite
 
             </div>
             <br>
@@ -223,6 +223,20 @@ use Studip\Button;
             </div>
             <br>
             <div>
+                <b>Log und Debug</b>
+                <br>
+                <input name="fo_log" type="checkbox">
+                Logdatei ausgeben um einen Überblick über mögliche Fehler oder Unvollständigkeiten zu erhalten
+                <br>
+                <input name="fo_debug" type="checkbox">
+                DEBUG-Felder in Dokument schreiben
+
+            </div>
+            <br>
+            <br>
+            <a href="#" onclick="toggle_visibility('block_fo_texte');">Textoptionen ein-/ausblenden</a>
+            <div id="block_fo_texte" style="display: none">
+                <br>
                 <b>Texte und Überschriften</b> <i>(Umbrüche werden nicht berücksichtigt!)</i>
                 <br>
                 <u>Deckblatt: Prüfungsordnung</u>
@@ -280,9 +294,156 @@ use Studip\Button;
                 <input type="text" name="fo_text_KdTVerwPre" size="5" value="Bitte entnehmen Sie die Veranstaltungsdetails aus der unter &bdquo;"> <i>«Schwerpunkt»</i> <input type="text" name="fo_text_KdTVerwSuf" size="5" value="&ldquo; gezeigten Übersicht.">
                 <br>
                 <br>
-                <u>Kursdetails: Prefix + Suffix für "Zeilenüberschriften" der Tabelle</u>
+                <u>Kursdetails: Prefix + Suffix für "Zeilentitel" der Tabelle</u>
                 <br>
                 <input type="text" name="fo_text_KdZuePre" size="25" value=""> <i>«Zeilenüberschrift»</i> <input type="text" name="fo_text_KdZUeSuf" size="25" value="">
+                <br>
+                <br>
+                <u>Kursdetails: Tabelle: Zeilentitel: Untertitel</u>
+                <br>
+                Deutsch: <input type="text" name="fo_text_KdTabZT_de_unt" value="Untertitel">
+                <br>
+                Englisch: <input type="text" name="fo_text_KdTabZT_en_unt" value="Subtitle">
+                <br>
+                <br>
+                <u>Kursdetails: Tabelle: Zeilentitel: Veranstaltungsnummer</u>
+                <br>
+                Deutsch: <input type="text" name="fo_text_KdTabZT_de_vnr" value="Veranstaltungsnummer">
+                <br>
+                Englisch: <input type="text" name="fo_text_KdTabZT_en_vnr" value="Course Number">
+                <br>
+                <br>
+                <u>Kursdetails: Tabelle: Zeilentitel: Typ der Veranstaltung</u>
+                <br>
+                Deutsch: <input type="text" name="fo_text_KdTabZT_de_typ" value="Typ der Veranstaltung">
+                <br>
+                Englisch: <input type="text" name="fo_text_KdTabZT_en_typ" value="Courses Type">
+                <br>
+                <br>
+                <u>Kursdetails: Tabelle: Zeilentitel: Moduleinordnung</u>
+                <br>
+                Deutsch: <input type="text" name="fo_text_KdTabZT_de_mod" value="Moduleinordnung">
+                <br>
+                Englisch: <input type="text" name="fo_text_KdTabZT_en_mod" value="Course Allocation">
+                <br>
+                <br>
+                <u>Kursdetails: Tabelle: Zeilentitel: Dozenten</u>
+                <br>
+                Deutsch: <input type="text" name="fo_text_KdTabZT_de_doz" value="Dozenten">
+                <br>
+                Englisch: <input type="text" name="fo_text_KdTabZT_en_doz" value="Lecturer">
+                <br>
+                <br>
+                <u>Kursdetails: Tabelle: Zeilentitel: Heimateinrichtung</u>
+                <br>
+                Deutsch: <input type="text" name="fo_text_KdTabZT_de_ein" value="Heimateinrichtung">
+                <br>
+                Englisch: <input type="text" name="fo_text_KdTabZT_en_ein" value="Home Institute">
+                <br>
+                <br>
+                <u>Kursdetails: Tabelle: Zeilentitel: Art/Form</u>
+                <br>
+                Deutsch: <input type="text" name="fo_text_KdTabZT_de_art" value="Art/Form">
+                <br>
+                Englisch: <input type="text" name="fo_text_KdTabZT_en_art" value="Type/Form">
+                <br>
+                <br>
+                <u>Kursdetails: Tabelle: Zeilentitel: Inhalt des Moduls / Beschreibung</u>
+                <br>
+                Deutsch: <input type="text" name="fo_text_KdTabZT_de_inh" value="Inhalt des Moduls / Beschreibung">
+                <br>
+                Englisch: <input type="text" name="fo_text_KdTabZT_en_inh" value="Content/Description">
+                <br>
+                <br>
+                <u>Kursdetails: Tabelle: Zeilentitel: Qualifikationsziele des Moduls</u>
+                <br>
+                Deutsch: <input type="text" name="fo_text_KdTabZT_de_qua" value="Qualifikationsziele des Moduls">
+                <br>
+                Englisch: <input type="text" name="fo_text_KdTabZT_en_qua" value="Qualification Goals">
+                <br>
+                <br>
+                <u>Kursdetails: Tabelle: Zeilentitel: Lehr- und Lernmethoden des Moduls</u>
+                <br>
+                Deutsch: <input type="text" name="fo_text_KdTabZT_de_met" value="Lehr- und Lernmethoden des Moduls">
+                <br>
+                Englisch: <input type="text" name="fo_text_KdTabZT_en_met" value="Learning organization">
+                <br>
+                <br>
+                <u>Kursdetails: Tabelle: Zeilentitel: Voraussetzungen für die Teilnahme</u>
+                <br>
+                Deutsch: <input type="text" name="fo_text_KdTabZT_de_vor" value="Voraussetzungen für die Teilnahme">
+                <br>
+                Englisch: <input type="text" name="fo_text_KdTabZT_en_vor" value="Pre-Requisites">
+                <br>
+                <br>
+                <u>Kursdetails: Tabelle: Zeilentitel: Häufigkeit des Angebots des Moduls</u>
+                <br>
+                Deutsch: <input type="text" name="fo_text_KdTabZT_de_hae" value="Häufigkeit des Angebots des Moduls">
+                <br>
+                Englisch: <input type="text" name="fo_text_KdTabZT_en_hae" value="Rotation">
+                <br>
+                <br>
+                <u>Kursdetails: Tabelle: Zeilentitel: Länge des Moduls</u>
+                <br>
+                Deutsch: <input type="text" name="fo_text_KdTabZT_de_lae" value="Länge des Moduls">
+                <br>
+                Englisch: <input type="text" name="fo_text_KdTabZT_en_lae" value="Length">
+                <br>
+                <br>
+                <u>Kursdetails: Tabelle: Zeilentitel: Workload des Moduls</u>
+                <br>
+                Deutsch: <input type="text" name="fo_text_KdTabZT_de_wor" value="Workload des Moduls">
+                <br>
+                Englisch: <input type="text" name="fo_text_KdTabZT_en_wor" value="Workload">
+                <br>
+                <br>
+                <u>Kursdetails: Tabelle: Zeilentitel: ECTS</u>
+                <br>
+                Deutsch: <input type="text" name="fo_text_KdTabZT_de_ect" value="ECTS">
+                <br>
+                Englisch: <input type="text" name="fo_text_KdTabZT_en_ect" value="ECTS">
+                <br>
+                <br>
+                <u>Kursdetails: Tabelle: Zeilentitel: Prüfungsnummer</u>
+                <br>
+                Deutsch: <input type="text" name="fo_text_KdTabZT_de_pnr" value="Prüfungsnummer">
+                <br>
+                Englisch: <input type="text" name="fo_text_KdTabZT_en_pnr" value="Test Number">
+                <br>
+                <br>
+                <u>Kursdetails: Tabelle: Zeilentitel: Art der Prüfung/Voraussetzung für die Vergabe von Leistungspunkten/Dauer der Prüfung</u>
+                <br>
+                Deutsch: <input type="text" name="fo_text_KdTabZT_de_pru" value="Art der Prüfung/Voraussetzung für die Vergabe von Leistungspunkten/Dauer der Prüfung">
+                <br>
+                Englisch: <input type="text" name="fo_text_KdTabZT_en_pru" value="Performance Record">
+                <br>
+                <br>
+                <u>Kursdetails: Tabelle: Zeilentitel: Empfohlene Literaturliste (Lehr- und Lernmaterialien, Literatur)</u>
+                <br>
+                Deutsch: <input type="text" name="fo_text_KdTabZT_de_lit" value="Empfohlene Literaturliste (Lehr- und Lernmaterialien, Literatur)">
+                <br>
+                Englisch: <input type="text" name="fo_text_KdTabZT_en_lit" value="Recommended Literature (Teaching and Learning Materials, Literature)">
+                <br>
+                <br>
+                <u>Kursdetails: Tabelle: Zeilentitel: Hinweise zur Anrechenbarkeit</u>
+                <br>
+                Deutsch: <input type="text" name="fo_text_KdTabZT_de_anr" value="Hinweise zur Anrechenbarkeit">
+                <br>
+                Englisch: <input type="text" name="fo_text_KdTabZT_en_anr" value="Notes on Creditability">
+                <br>
+                <br>
+                <u>Kursdetails: Tabelle: Zeilentitel: Sonstiges / Besonderes (z.B. Online-Anteil, Praxisbesuche, Gastvorträge, etc.)</u>
+                <br>
+                Deutsch: <input type="text" name="fo_text_KdTabZT_de_son" value="Sonstiges / Besonderes (z.B. Online-Anteil, Praxisbesuche, Gastvorträge, etc.)">
+                <br>
+                Englisch: <input type="text" name="fo_text_KdTabZT_en_son" value="Miscellaneous">
+                <br>
+                <br>
+                <u>Kursdetails: Tabelle: Zeilentitel: Teilnehmer</u>
+                <br>
+                Deutsch: <input type="text" name="fo_text_KdTabZT_de_tei" value="Teilnehmer">
+                <br>
+                Englisch: <input type="text" name="fo_text_KdTabZT_en_tei" value="Current Number of Participants">
                 <br>
                 <br>
                 <u>Kursdetails: Bitte entnehmen Sie gegebenenfalls die konkrete Dauer aus den weiteren Angaben.</u>
@@ -323,17 +484,6 @@ use Studip\Button;
                 <u>Hinweise zu anderen Veranstaltungen: Text: Schlüsselkompetenzen</u>
                 <br>
                 <textarea name="fo_text_hzavTSK">Zusätzlich können Sie Veranstaltungen zu Schlüsselkompetenzen aus dem Angebot des Zentrums für Karriere und Kompetenzen wählen. Das Angebot entnehmen Sie bitte aus dessen Website: http://www.uni-passau.de/studium/service-und-beratung/zkk/veranstaltungen/fuer-studierende/</textarea>
-            </div>
-            <br>
-            <div>
-                <b>Log und Debug</b>
-                <br>
-                <input name="fo_log" type="checkbox">
-                Logdatei ausgeben um einen Überblick über mögliche Fehler oder Unvollständigkeiten zu erhalten
-                <br>
-                <input name="fo_debug" type="checkbox">
-                DEBUG-Felder in Dokument schreiben
-
             </div>
         </div>
         <br>
