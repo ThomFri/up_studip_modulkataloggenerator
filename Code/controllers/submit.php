@@ -1053,7 +1053,7 @@ class SubmitController extends AuthenticatedController {
         }
         elseif ($this->inputArray['datei'] === 'docx'&&$this->inputArray['log'] === 'on'){//DOCX und Log
             try {
-                $wordfilename = "Katalog";
+                $wordfilename = "Modulkatalog";
 
                 $xmlWriter = IOFactory::createWriter($phpWord, 'Word2007');
                 $xmlWriter->save($GLOBALS['TMP_PATH'].'/'.$wordfilename.$docx_ending);
