@@ -953,7 +953,34 @@ class SubmitController extends AuthenticatedController {
             }
         }
 
+
+        /*
+         * WEITERE FEATURES
+         * ================
+         */
+
         elseif ($this->inputArray['auftrag'] === 'ects') { //ECTS-Liste erstellen
+            //KOPIERT
+            //PhpWord ist eine Hilfsklasse zum Erstellen der Word-Files
+            $phpWord = new PhpWord();
+            $phpWord->getCompatibility()->setOoxmlVersion(15); //setzt die Kompatibilität auf Word2013
+            Settings::setOutputEscapingEnabled(true);
+            $phpWord->getSettings()->setHideGrammaticalErrors(true);
+            $phpWord->getSettings()->setHideSpellingErrors(true);
+            //DomPDF wird zur Erzeugung von PDFs verwendet -> für spätere Versionen
+            $options = new Options();
+            $options->setChroot($GLOBALS['TMP_PATH']);
+            $dompdf = new Dompdf($options);
+
+            $headerSection = $phpWord->addSection(); //Titel des Dokuments und Gliederung
+            $headerStyle = array('name' => 'Tahoma', 'size' => 16, 'bold' => true);
+            $mainSection = $phpWord->addSection(array('breakType' => 'continuous')); //Inhalt des Dokuments
+            $titleStyle = array('name' => 'Arial', 'size' => 12, 'bold' => true);
+            $centerStyle = array('alignment' => Jc::CENTER);
+            $tableStyle = array('cellMargin' => 40);
+
+
+
             $user = User::findByUsername($this->inputArray['profUsername']);
             $file = 'ECTS-Liste_' . $this->inputArray['semester'] . '_' .
                 $this->inputArray['profUsername'];
