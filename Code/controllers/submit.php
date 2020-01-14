@@ -1410,9 +1410,10 @@ class SubmitController extends AuthenticatedController {
 
                 //Schwerpunkte der Kurse sortieren
                 for($i = 0; $i<sizeof($tmpModulzuordnungenSimpleSource); $i++) {
-                    if(sizeof($current_schwerpunkte_source) > 1) {
+                    $current_schwerpunkte_source = array_slice($tmpModulzuordnungenSimpleSource[$i], 1); //[0]: Kurs; [>0]: Schwerpunkte
+
+                    if(sizeof($tmpModulzuordnungenSimpleSource[$i]) > 1) { //Mehr als 1 Schwerpunkt ==> Muss sortiert werden!
                         $current_kurs = $tmpModulzuordnungenSimpleSource[$i][0];
-                        $current_schwerpunkte_source = array_slice($tmpModulzuordnungenSimpleSource[$i], 1);
                         $current_schwerpunkte_target = array();
 
                         // Konfigurierte Schwerpunktreihenfolge einhalten
@@ -1552,19 +1553,41 @@ class SubmitController extends AuthenticatedController {
     }
 
     /**
+     * Gibt die Schwerpunkte eines Kurses als Array zurück
+     * @param $kursobjekt Course Der Kurs
+     * @return string Konkatenierter String der Schwerpunkte des Kurses
+     */
+    public function getSchwerpunktAsArray($kursobjekt) {
+        $result = array();
+
+        for($i = 0; $i < sizeof($this->tabKursSchwerpunkte); $i++) {
+            if($this->tabKursSchwerpunkte[$i][0]->veranstaltungsnummer == $kursobjekt->veranstaltungsnummer) { //Vergleich über Nummer
+                $result = array_slice($this->tabKursSchwerpunkte[$i], 1);
+                break; //increase speed
+            }
+        }
+        return $result;
+    }
+
+    /**
      * Gibt die Schwerpunkte eines Kurses als zusammengesetzten String zurück
      * @param $kursobjekt Course Der Kurs
      * @return string Konkatenierter String der Schwerpunkte des Kurses
      */
-    public function getSchwerpunkt($kursobjekt) {
+    public function getSchwerpunktFormatiert($kursobjekt) {
         $result = "";
 
-        for($i = 0; $i < sizeof($this->tabKursSchwerpunkte); $i++) {
-            if($this->tabKursSchwerpunkte[$i][0]->veranstaltungsnummer == $kursobjekt->veranstaltungsnummer) { //Vergleich über Nummer
-                $result = implode("\n", array_slice($this->tabKursSchwerpunkte[$i], 1));
-                break; //increase speed
+        $tmp_array = $this->getSchwerpunktAsArray($kursobjekt);
+
+        if(sizeof($tmp_array) == 1) { //nur ein Eintrag
+            $result =  $tmp_array[0];
+        }
+        elseif(sizeof($tmp_array) > 1){ //Liste erstellen
+            foreach($tmp_array as $current_schwerpunkt) {
+                $result = $result."\n- ".$current_schwerpunkt;
             }
         }
+
         return $result;
     }
 
@@ -1670,7 +1693,7 @@ class SubmitController extends AuthenticatedController {
         $tmp_untertitel = $kursobjekt->untertitel;
         $tmp_veranstaltungsnummer = $kursobjekt->veranstaltungsnummer;
         $tmp_veranstaltungstyp = $kursobjekt->getSemType()['name'];
-        $tmp_schwerpunkt = $this->getSchwerpunkt($kursobjekt); //Schwerpunkt
+        $tmp_schwerpunkt = $this->getSchwerpunktFormatiert($kursobjekt); //Schwerpunkt
         $tmp_einrichtung = Institute::find($kursobjekt->institut_id)->name;
         $tmp_art = $kursobjekt->art;
         $tmp_beschreibung = $kursobjekt->beschreibung;
