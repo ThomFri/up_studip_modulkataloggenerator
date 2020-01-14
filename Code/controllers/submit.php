@@ -562,6 +562,7 @@ class SubmitController extends AuthenticatedController {
                 $file = $file.$current_semester."_";
             }
             $file = $file.$this->inputArray['studiengang'];
+            $file = str_replace(" ", "-", $file); //keine Leerzeichen
 
 
             /**
@@ -1052,13 +1053,15 @@ class SubmitController extends AuthenticatedController {
         }
         elseif ($this->inputArray['datei'] === 'docx'&&$this->inputArray['log'] === 'on'){//DOCX und Log
             try {
+                $wordfilename = "Katalog";
+
                 $xmlWriter = IOFactory::createWriter($phpWord, 'Word2007');
-                $xmlWriter->save($GLOBALS['TMP_PATH'].'/'.$file.$docx_ending);
+                $xmlWriter->save($GLOBALS['TMP_PATH'].'/'.$wordfilename.$docx_ending);
 
                 $zip = new ZipArchive();
                 unlink($GLOBALS['TMP_PATH'].'/files.zip');
                 $zip->open($GLOBALS['TMP_PATH'].'/files.zip', ZipArchive::CREATE);
-                $zip->addFile($GLOBALS['TMP_PATH'].'/'.$file.$docx_ending, $file.$docx_ending);
+                $zip->addFile($GLOBALS['TMP_PATH'].'/'.$wordfilename.$docx_ending, $wordfilename.$docx_ending);
                 $zip->addFile($GLOBALS['TMP_PATH'].'/log.log', 'log.log');
                 $zip->close();
 
