@@ -36,6 +36,20 @@ use Studip\Button;
         </div>
         <br>
         <div>
+            <b>Fakultät</b>
+            <br>
+            <select name="modul_faculty" id="fac-drop" required="required">
+                <option value="Wirtschaftswissenschaftliche Fakultät" selected="selected">Wirtschaftswissenschaftliche Fakultät</option>
+
+                <?php foreach ($institutes as $s) : ?>
+                    <?php if ($s->faculty!==null) : ?>
+                        <option value="<?= $s->name ?>" ><?= htmlReady($s->name) ?></option>
+                    <?php endif ?>
+                <?php endforeach ?>
+            </select>
+        </div>
+        <br>
+        <div>
             <b>Studiengang</b>
             <br>
             <select name="modul_major" id="major-drop" required="required" onchange="onChangeRegulation()">
@@ -67,14 +81,30 @@ use Studip\Button;
 
             <h2><i>Erweiterte Optionen</i></h2>
             <div>
-                <b>Fakultät</b>
+                <b>Lehrstuhl (Funtioniert noch nicht!)</b>
                 <br>
-                <select name="modul_faculty" id="fac-drop" required="required">
-                    <option value="Wirtschaftswissenschaftliche Fakultät" selected="selected">Wirtschaftswissenschaftliche Fakultät</option>
-
-                    <?php foreach ($institutes as $s) : ?>
-                        <?php if ($s->faculty!==null) : ?>
-                            <option value="<?= $s->name ?>" ><?= htmlReady($s->name) ?></option>
+                <select name="fo_modul_lehrstuhl" id="lehrstuhl-drop" required="required" onchange="onChangeProfs()">
+                    <option value="predef_all" selected>_ALLE</option>
+                    <?php foreach ($sub_wiwi as $s) : ?>
+                        <?php if (strpos($s->name, 'Lehr') !== false) : ?>
+                            <?php if ($s->name === "Lehreinheit für ABWL") :?>
+                                <option value="<?= $s->institut_id ?>" selected="selected"><?= htmlReady($s->name) ?></option>
+                            <?php else : ?>
+                                <option value="<?= $s->institut_id ?>"><?= htmlReady($s->name) ?></option>
+                            <?php endif ?>
+                        <?php endif ?>
+                    <?php endforeach ?>
+                </select>
+            </div>
+            <br>
+            <div>
+                <b>Lehrende(r) (Funtioniert noch nicht!)</b>
+                <br>
+                <select name="fo_modul_prof" id="prof-drop" required="required">
+                    <option value="predef_all" selected>_ALLE</option>
+                    <?php foreach ($abwl_members as $s) : ?>
+                        <?php if($s->username!=null&&$s->username!=="unipassau_nn") : ?>
+                            <option value="<?= $s->username ?>" selected="selected"><?= htmlReady($s->vorname) . " " . htmlReady($s->nachname) ?></option>
                         <?php endif ?>
                     <?php endforeach ?>
                 </select>

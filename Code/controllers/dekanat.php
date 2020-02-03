@@ -40,6 +40,9 @@ class DekanatController extends AuthenticatedController {
         $wiwiTree = StudipStudyArea::findOnebyStudip_object_id(Institute::findOneByName('Wirtschaftswissenschaftliche Fakultät')->id);
         $this->wiwiTree = $wiwiTree;
 
+        $sub_wiwi = Institute::findByFaculty(Institute::findOneByName('Wirtschaftswissenschaftliche Fakultät')->id);
+        $this->sub_wiwi = $sub_wiwi;
+
         $studysubjects = StudipStudyArea::findByParent($wiwiTree->id);
         $this->studysubjects = $studysubjects;
 
