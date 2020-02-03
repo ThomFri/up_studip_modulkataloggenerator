@@ -85,8 +85,28 @@ class DekanatController extends AuthenticatedController {
      * des Lehrstuhls die Lehrenden zu aktualisieren
      */
     public function populateProfs_action(){
-        $members = Institute::find(Request::get("id"))->members;
-        $this->render_json($members->toArray());
+        $idarray = array();
+        $members = array();
+        $singleID = Request::get("id");
+        $multipleID = Request::getArray("id");
+        //$multipleID[0] = "118a87e48121f4ed86ad5c9545d5e720";
+
+        if($multipleID != null && sizeof($multipleID) > 0) {
+            //array_merge($idarray, $multipleID);
+            $idarray = $multipleID;
+        }
+
+        if($singleID != null) {
+            array_push($idarray, $singleID);
+        }
+
+        foreach ($idarray as $currentID) {
+            $currentMembers = Institute::find($currentID)->members;
+            $this->render_json($currentMembers->toArray());
+            array_merge($members, $currentMembers);
+        }
+        //$members = Institute::find($singleID)->members;
+        //$this->render_json($members->toArray());
     }
 
     /**

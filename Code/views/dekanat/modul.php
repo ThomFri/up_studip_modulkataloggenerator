@@ -83,15 +83,11 @@ use Studip\Button;
             <div>
                 <b>Lehrstuhl (Funtioniert noch nicht!)</b>
                 <br>
-                <select name="fo_modul_lehrstuhl" id="lehrstuhl-drop" required="required" onchange="onChangeProfs()">
-                    <option value="predef_all" selected>_ALLE</option>
+                <select name="fo_modul_lehrstuhl" id="lehrstuhl-drop" required="required" onchange="onChangeProfs()" multiple size="15">
+<!--                    <option value="predef_all" selected>_ALLE</option>-->
                     <?php foreach ($sub_wiwi as $s) : ?>
                         <?php if (strpos($s->name, 'Lehr') !== false) : ?>
-                            <?php if ($s->name === "Lehreinheit für ABWL") :?>
-                                <option value="<?= $s->institut_id ?>" selected="selected"><?= htmlReady($s->name) ?></option>
-                            <?php else : ?>
-                                <option value="<?= $s->institut_id ?>"><?= htmlReady($s->name) ?></option>
-                            <?php endif ?>
+                            <option value="<?= $s->institut_id ?>" selected="selected"><?= htmlReady($s->name) ?></option>
                         <?php endif ?>
                     <?php endforeach ?>
                 </select>
