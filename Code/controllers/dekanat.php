@@ -43,6 +43,15 @@ class DekanatController extends AuthenticatedController {
         $sub_wiwi = Institute::findByFaculty(Institute::findOneByName('Wirtschaftswissenschaftliche Fakultät')->id);
         $this->sub_wiwi = $sub_wiwi;
 
+        //TODO: Geht noch nicht!
+        $abwl_members = array();
+        foreach ($sub_wiwi as $currentSub) {
+            //$abwl_members = $sub_wiwi[$this->ABWL_INDEX]->members;
+
+            //array_merge($abwl_members, $currentSub->members);
+        }
+        $this->abwl_members = $abwl_members;
+
         $studysubjects = StudipStudyArea::findByParent($wiwiTree->id);
         $this->studysubjects = $studysubjects;
 
@@ -85,6 +94,7 @@ class DekanatController extends AuthenticatedController {
      * des Lehrstuhls die Lehrenden zu aktualisieren
      */
     public function populateProfs_action(){
+        //TODO: Geht noch nicht wenn mehrere ausgewählt!
         $idarray = array();
         $members = array();
         $singleID = Request::get("id");
@@ -103,7 +113,8 @@ class DekanatController extends AuthenticatedController {
         foreach ($idarray as $currentID) {
             $currentMembers = Institute::find($currentID)->members;
             $this->render_json($currentMembers->toArray());
-            array_merge($members, $currentMembers);
+            //array_merge($members, $currentMembers);
+            $members = $currentMembers;
         }
         //$members = Institute::find($singleID)->members;
         //$this->render_json($members->toArray());

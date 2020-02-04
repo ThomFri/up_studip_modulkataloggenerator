@@ -96,8 +96,8 @@ use Studip\Button;
             <div>
                 <b>Lehrende(r) (Funtioniert noch nicht!)</b>
                 <br>
-                <select name="fo_modul_prof" id="prof-drop" required="required">
-                    <option value="predef_all" selected>_ALLE</option>
+                <select name="fo_modul_prof" id="prof-drop" size="15" multiple> <!-- required="required"  -->
+<!--                    <option value="predef_all" selected>_ALLE</option>-->
                     <?php foreach ($abwl_members as $s) : ?>
                         <?php if($s->username!=null&&$s->username!=="unipassau_nn") : ?>
                             <option value="<?= $s->username ?>" selected="selected"><?= htmlReady($s->vorname) . " " . htmlReady($s->nachname) ?></option>

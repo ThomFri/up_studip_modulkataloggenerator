@@ -8,7 +8,7 @@ function onChangeProfs() {
         data: {id: $('#lehrstuhl-drop').val()},
         success: function (data) {
             $('#prof-drop').empty();
-            $('#prof-drop').append($('<option>').attr('value', "predef_all").html("_ALLE"));
+            //$('#prof-drop').append($('<option>').attr('value', "predef_all").html("_ALLE"));
             for (var i = 0; i < data.length; i++) {
                 if(data[i].username!=null&&data[i].username!=="unipassau_nn")
                     $('#prof-drop').append($('<option>').attr('value', data[i].username).html(data[i].vorname + " " + data[i].nachname));
@@ -16,7 +16,10 @@ function onChangeProfs() {
         },
         error: function () {
             $('#prof-drop').empty();
-            $('#prof-drop').append($('<option>').attr('value', "predef_all").html("_ALLE"));
+            $('#prof-drop').append($('<option>').attr('value', "predef_all").html("FEHLER!"));
+            for (var i = 0; i < data.length; i++) {
+                    $('#prof-drop').append($('<option>').html(data[i]));
+            }
         }
         });
 }
